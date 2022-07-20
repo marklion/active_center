@@ -1,0 +1,114 @@
+#!/usr/bin/env node
+
+/**
+ * 项目启动，连接数据库，监听端口
+ * Module dependencies.
+ */
+//build dir if needed
+dirInit('../logs', '../public/upload', '../models');
+
+const mongoose = require('mongoose');
+const Grid = require('gridfs-stream');
+const bluebird = require('bluebird');
+const config = require('config');
+const log = require('../lib/log').get(config.logger);
+const httpResult = require('../lib/httpResult');
+
+const mongoOptions = {
+  // reconnectTries: Number.MAX_VALUE, // Never stop trying to reconnect
+  // reconnectInterval: 3000, // Reconnect every 3000ms
+  poolSize: 20, // Maintain up to 20 socket connections
+  // If not connected, return errors immediately rather than waiting for reconnect
+  bufferMaxEntries: 0,
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  useCreateIndex : true
+};
+
+mongoose.connect(config.db.mongo.url, mongoOptions);
+mongoose.Promise = bluebird;
+mongoose.set('useFindAndModify', false);
+const mongodb = mongoose.connection;
+
+global._ = require('lodash');
+global.constant = require('../constant');
+global.models = require('./load_models');
+global.mongodb = mongodb;
+global.log = log;
+global.httpResult = httpResult;
+
+mongodb.on('error', console.error.bind(console, 'connection error:'));
+
+mongodb.once('open', async () => {
+  // we're connected!
+  log.info(`=====> db connected :${config.db.mongo.url}`);
+  global.gfs = Grid(mongodb.db, mongoose.mongo);
+  gfs.collection('media');
+
+  await dbInit();
+  log.info(`=====> db init finished`);
+
+  let app = require('../app');
+  let port = normalizePort(config.port);
+  app.listen(port);
+  log.info(`=====> listen port on ${port}`);
+});
+
+/**
+ * Normalize a port into a number, string, or false.
+ */
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+
+  if (isNaN(port)) {
+    // named pipe
+    return val;
+  }
+
+  if (port >= 0) {
+    // port number
+    return port;
+  }
+
+  return false;
+}
+/**
+ * 初始化必要的目录
+ */
+function dirInit() {
+  const shell = require('shelljs');
+  for(let index in arguments){
+    arguments[index] = __dirname + '/' + arguments[index];
+    shell.mkdir('-p', arguments[index]);
+  }
+}
+
+async function dbInit(){
+  try{
+    //这个init 最好在实际使用的时候去掉，万一代码泄漏，超级管理员账户就丢失了。
+    let sr = await models.role.findOne({name: 'root'});
+    if(!sr){
+      sr = await models.role.create({
+        name : 'root',
+        type : 0,
+        menus : [],
+        editable : false,
+        create_time : new Date(),
+      });
+    }
+    let sa = await models.adminUser.findOne({account : 'admin'});
+    if(!sa){
+      await models.adminUser.create({
+        account: 'admin',
+        pwd: 'admin',
+        name: '超级管理员',
+        role: sr._id,
+        privilege : [],
+        system : 1
+      });
+    }
+  }catch(err){
+    log.error(err);
+  }
+}

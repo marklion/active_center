@@ -1,0 +1,11 @@
+{
+  "basePath" : "/api",
+  "port" : 8080,
+  "db" : {
+    "mongo" : {
+      "url" : "mongodb://root:dcnbwjjq@39.105.108.11:27017/iot?authSource=admin"
+    }
+  },
+  "uploadPath": "./public/upload",
+  "logger": "debug"
+}
