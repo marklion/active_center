@@ -3,7 +3,7 @@
   "port" : 7777,
   "db" : {
     "mongo" : {
-      "url" : "mongodb://root:dcnbwjjq@39.105.108.11:27017/game?authSource=admin"
+      "url" : "mongodb://name:password@host:port/db_name?authSource=xxx"
     }
   },
   "uploadPath": "./public/upload",

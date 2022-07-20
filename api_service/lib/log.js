@@ -17,23 +17,7 @@ log4js.configure({
             backups: 10,
             category: 'root'
         },
-        // mailLog: {
-        //     type: 'smtp',
-        //     SMTP: {
-        //         host: 'smtp.mxhichina.com',
-        //         port: 465,
-        //         auth: {
-        //             user: 'notice@shuda.me',
-        //             pass: 'Dd123321'
-        //         }
-        //     },
-        //     sendInterval: 20,
-        //     subject: '流量平台邮件日志',
-        //     recipients: 'dongchen0502@163.com',
-        //     sender: 'notice@shuda.me',
-        //     category: 'mail'
-        // },
-        // replaceConsole: true,
+        replaceConsole: true,
     },
     categories : {
         default : {appenders : ['out'], level: 'info'},
