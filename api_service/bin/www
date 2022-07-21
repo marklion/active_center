@@ -97,11 +97,11 @@ async function dbInit(){
         create_time : new Date(),
       });
     }
-    let sa = await models.adminUser.findOne({account : 'admin'});
+    let sa = await models.adminUser.findOne({account : 'zcadmin'});
     if(!sa){
       await models.adminUser.create({
-        account: 'admin',
-        pwd: 'admin',
+        account: 'zcadmin',
+        pwd: 'zcadmin',
         name: '超级管理员',
         role: sr._id,
         privilege : [],
