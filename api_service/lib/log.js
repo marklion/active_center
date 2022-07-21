@@ -17,7 +17,7 @@ log4js.configure({
             backups: 10,
             category: 'root'
         },
-        replaceConsole: true,
+        // replaceConsole: true,
     },
     categories : {
         default : {appenders : ['out'], level: 'info'},
