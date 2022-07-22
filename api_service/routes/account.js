@@ -4,61 +4,53 @@
  */
 const router = require('koa-router')();
 const _ = require('lodash');
+const cacheService = require('../services/cache');
 
 const httpResult = require('../lib/httpResult');
 
-
-router.get('/:id', httpResult.resp(async ctx => {
-    let admin = ctx.session.admin;
-    let id = ctx.params.id;
-    let q = _.assign({_id : id}, {status : 1, customer_chain: new RegExp(`^${admin.customer_chain}`)});
-    return await models.adminUser.findOne(q);
-}));
 /**
  * 按条件获取当前账号可见的账号列表
  */
 router.get('/', httpResult.resp(async ctx => {
-    let admin = ctx.session.admin;
+    let user = ctx.session.user;
     let query = ctx.query;
-    let q = _.assign(query, {status : 1, customer_chain: new RegExp(`^${admin.customer_chain}`)});
-    return await models.adminUser.find(q).populate('role');
+    let q = _.assign(query, {removed : 1}, appCache.getClubQueryCondition(user.club));
+    return await models.user.find(q).populate('role');
 }));
 
 router.post('/', httpResult.resp(async ctx => {
     let data = ctx.request.body;
-    let admin = ctx.session.admin;
+    let admin = ctx.session.user;
 
     let adminUser = {
         account         : data.account,       //登录名
         pwd             : data.pwd,
         name            : data.name,                               //昵称
-        role            : data.role,  
+        role            : data.role,
         mobile          : data.mobile,
         privilege       : [],
     };
-    if(data.customer){
-        let customer = await models.customer.findOne({_id : data.customer});
-        adminUser.customer = customer._id;
-        adminUser.customer_name = customer.name;
-        adminUser.customer_chain = customer.chain;
+    if(data.club){
+        adminUser.club = data.club
     }
 
     if(data._id){
-        await models.adminUser.findOneAndUpdate({_id: data._id}, {$set : adminUser}, {new: true});   
+        await models.user.findOneAndUpdate({_id: data._id}, {$set : adminUser}, {new: true});
     }else{
         adminUser.creator = admin._id;
         adminUser.create_time = Date.now();
-        await models.adminUser.create(adminUser);
+        await models.user.create(adminUser);
     }
+    await cacheService.refreshClubCache();
     return 'ok'
 }));
 
 router.put('/:id', httpResult.resp(async ctx => {
-    let admin = ctx.session.admin;
+    let admin = ctx.session.user;
     let id = ctx.params.id;
     let body = ctx.request.body;
     ctx.assert(id, 'missing request url param : id');
-    let target = await models.adminUser.findOne({_id : id});
+    let target = await models.user.findOne({_id : id});
     ctx.assert(target, 'account is not exsit');
 
     ctx.assert(['reset_pwd'].includes(body.type), 'update type is not supported yet : ' + body.type);
@@ -75,13 +67,12 @@ router.put('/:id', httpResult.resp(async ctx => {
 }));
 
 router.del('/:id', httpResult.resp(async ctx => {
-    let admin = ctx.session.admin;
+    let admin = ctx.session.user;
     let id = ctx.params.id;
     ctx.assert(id, 'missing request url param : id');
-    let target = await models.adminUser.findOne({_id : id, customer_chain: new RegExp(`^${admin.customer_chain}`)});
+    let target = await models.user.findOne(_.assign({_id : id}, appCache.getClubQueryCondition(user.club)));
     ctx.assert(target, 'account is not exsit or no permissions');
-    target.status = 0;
-    return await target.save();
+    return await target.remove();
 }));
 
 module.exports = router;

@@ -8,10 +8,9 @@ const _ = require('lodash');
  * 新建角色
  */
 router.post('/add', httpResult.resp(async ctx => {
-    let {customer_chain, customer_name, _id} = ctx.session.admin;
+    let {club, _id} = ctx.session.user;
     let { name } = ctx.request.body;
-
-    return await models.role.create({name, customer_chain, customer_name, creator : _id, create_time : new Date()});
+    return await models.role.create({name, club, creator : _id, create_time : new Date()});
 }));
 /**
  * 编辑角色名称和权限
@@ -32,33 +31,25 @@ router.put('/edit/:id', httpResult.resp(async ctx => {
  * 获取角色列表
  */
 router.get('/list', httpResult.resp(async ctx => {
-    let admin = ctx.session.admin;
+    let user = ctx.session.user;
     let query = ctx.query;
-    let q = _.assign(query, {status : 1, customer_chain: new RegExp(`^${admin.customer_chain}`)});
-    return await models.role.find(q).populate('creator');
+
+    _.assign(query, {removed : 0}, appCache.getClubQueryCondition(user.club));
+    return await models.role.find(query).populate('creator');
 }));
-/**
- * 获取单个角色详情by id
- * 根据id获取，不做可见范围校验
- */
-router.get('/', httpResult.resp(async ctx => {
-    let admin = ctx.session.admin;
-    let query = ctx.query;
-    let q = _.assign({_id : query.id}, {status : 1});
-    return await models.role.findOne(q);
-}));
+
 /**
  * 删除角色
  */
 router.del('/:id', httpResult.resp(async ctx => {
-    let admin = ctx.session.admin;
+    let user = ctx.session.user;
     let roleId = ctx.params.id;
 
-    let accounts = await models.adminUser.find({role : roleId});
+    let accounts = await models.user.find({role : roleId});
     if(accounts && accounts.length > 0){
         throw new Error("Can't delete, other account still using this role");
     }else{
-        return await models.role.findOneAndUpdate({_id : roleId}, {$set : {status : 0}});
+        return await models.role.remove(_.assign({_id : roleId}, appCache.getClubQueryCondition(user.club)));
     }
 }));
 

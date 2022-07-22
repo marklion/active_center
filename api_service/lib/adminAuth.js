@@ -27,7 +27,7 @@ async function valid(ctx, next){
         return;
     }
 
-    if(!ctx.session.admin){
+    if(!ctx.session.user){
         log.info(ctx.path);
         if(ctx.request.xhr){
             log.info("ajax request: 用户没有登录");

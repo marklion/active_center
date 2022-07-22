@@ -6,23 +6,23 @@ const Schema = mongoose.Schema,
     SALT_WORK_FACTOR = 7;
 
 let adminUserSchema = new Schema({
-    account         : {type : String, required: true, unique : true},       //登录名
+    account         : {type : String, required: true},       //登录名
     pwd             : {type : String, required: true},
     name            : String,                               //昵称
     mobile          : String,
-    role            : {type : ObjectId, ref : 'role'},
+    role            : {type : ObjectId, ref : 'role'},      //manager，leader，player，root
     privilege       : Object,
-    customer        : {type : ObjectId, ref : 'customer'},
-    customer_name   : {type : String, default : ''},     //客户
-    customer_chain  : {type : String, default : '', index : true},
+    club        : {type : ObjectId, ref : 'club'},
     creator         : ObjectId,  //对应adminUserModel 的objectId  //除超级管理员外，都有creator
     last_time       : Date,
     last_ip         : String,
     system          : Number,                              //是否是系统创建 1表示系统创建 不允许修改删除
-    status          : {type : Number, default : 1},                               //状态，0=关闭，1=开启
+    removed          : {type : Number, default : 0},                               //是否删除，0=否，1=是
     create_time     : Date,
     update_time     : {type : Date, default: Date.now}
 });
+
+adminUserSchema.index( { account: 1,  removed: 1}, { unique: true } );
 
 adminUserSchema.pre('save', function(next){
     let user = this;

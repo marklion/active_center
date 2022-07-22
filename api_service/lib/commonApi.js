@@ -18,20 +18,20 @@ module.exports = router;
  * rest接口统一都带数据范围权限，如果需要跳过customer——chain，请在routes文件夹中对应文件中添加响应接口
  */
 async function init(ctx, next){
-    let admin = ctx.session.admin;
-    ctx.assert(admin, `account is not login`);
+    let user = ctx.session.user;
+    ctx.assert(user, `account is not login`);
     let modelName = ctx.params.model;
     let model = models[modelName];
     ctx.assert(model, `model ${modelName} is not exist`);
     ctx._model = model;
-    if(model.schema.pathType('customer_chain') === 'real'){
-        ctx.query.customer_chain = new RegExp(`^${admin.customer_chain}`);
+    if(modelName === 'club'){
+        _.assign(ctx.query, {_id : appCache.getClubQueryCondition(user.club).club});
     }
-    if(model.schema.pathType('chain') === 'real'){
-        ctx.query.chain = new RegExp(`^${admin.customer_chain}`);
+    if(model.schema.pathType('club') === 'real'){
+        _.assign(ctx.query, appCache.getClubQueryCondition(user.club));
     }
-    if(model.schema.pathType('status') === 'real'){
-        ctx.query.status = {$gt : 0};
+    if(model.schema.pathType('removed') === 'real'){
+        _.assign(ctx.query, {removed : 0});
     }
     // console.log(admin);
     await next();
@@ -47,10 +47,7 @@ async function getById(ctx) {
 }
 
 async function getList(ctx){
-    let admin = ctx.session.admin;
-    let chain = admin.customer_chain;
-    let query = ctx.query;
-    let q = _.assign(query, {});
+    let q = ctx.query;
 
     if(q.page){
         let pageSize = +q.pageSize || 20;
@@ -80,11 +77,11 @@ async function updateById(ctx){
     ctx.assert(id, 'request url param [id] missing');
     let data = ctx.request.body;
     // ctx.assert(data, '');
-    return await ctx._model.findOneAndUpdate({_id: id},  {$set : data}, {new: true});
+    return await ctx._model.findOneAndUpdate(_.assign({_id: id}, ctx.query),  {$set : data}, {new: true});
 }
 
 async function deleteById(ctx){
     let id = ctx.params.id;
     ctx.assert(id, 'request url param [id] missing');
-    return await ctx._model.remove({_id : id});
+    return await ctx._model.findOneAndUpdate(_.assign({_id: id}, ctx.query), {$set : {removed : 1}}, {new : true});
 }

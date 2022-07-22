@@ -13,6 +13,7 @@ const bluebird = require('bluebird');
 const config = require('config');
 const log = require('../lib/log').get(config.logger);
 const httpResult = require('../lib/httpResult');
+const cacheService = require('../services/cache');
 
 const mongoOptions = {
   // reconnectTries: Number.MAX_VALUE, // Never stop trying to reconnect
@@ -36,6 +37,17 @@ global.models = require('./load_models');
 global.mongodb = mongodb;
 global.log = log;
 global.httpResult = httpResult;
+global.appCache = {
+  visibleClubs : {},
+  getClubQueryCondition : function(clubId){
+    let clubs = appCache.visibleClubs[clubId];
+    if(clubs && clubs.length === 1){
+      return {club : clubs[0]};
+    }else{
+      return {club : {$in : clubs}}
+    }
+  }
+};
 
 mongodb.on('error', console.error.bind(console, 'connection error:'));
 
@@ -47,6 +59,9 @@ mongodb.once('open', async () => {
 
   await dbInit();
   log.info(`=====> db init finished`);
+
+  await cacheInit();
+  log.info(`=====> app cache init finished`);
 
   let app = require('../app');
   let port = normalizePort(config.port);
@@ -86,24 +101,37 @@ function dirInit() {
 
 async function dbInit(){
   try{
+    await models.club.remove({});
+    await models.role.remove({});
+    await models.user.remove({});
+
     //这个init 最好在实际使用的时候去掉，万一代码泄漏，超级管理员账户就丢失了。
+    let sClub = await models.club.findOne({name : 'root'});
+    if(!sClub){
+      sClub = await models.club.create({
+        name : 'root',
+      });
+    }
+
     let sr = await models.role.findOne({name: 'root'});
     if(!sr){
       sr = await models.role.create({
         name : 'root',
-        type : 0,
+        type : constant.ROLE_TYPE.SUPER_ADMIN,
+        club : sClub._id,
         menus : [],
         editable : false,
         create_time : new Date(),
       });
     }
-    let sa = await models.adminUser.findOne({account : 'zcadmin'});
+    let sa = await models.user.findOne({account : 'zcadmin'});
     if(!sa){
-      await models.adminUser.create({
+      await models.user.create({
         account: 'zcadmin',
         pwd: 'zcadmin',
         name: '超级管理员',
         role: sr._id,
+        club : sClub._id,
         privilege : [],
         system : 1
       });
@@ -111,4 +139,8 @@ async function dbInit(){
   }catch(err){
     log.error(err);
   }
+}
+
+async function cacheInit(){
+  await cacheService.refreshClubCache();
 }

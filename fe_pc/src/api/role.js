@@ -9,9 +9,8 @@ export function getList(query) {
 }
 export function getById(id) {
   return request({
-    url: '/api/v1/role',
-    method: 'get',
-    params : {id}
+    url: '/api/rest/role/' + id,
+    method: 'get'
   })
 }
 

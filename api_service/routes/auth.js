@@ -1,5 +1,8 @@
 /**
  * Created by dongchen on 2017/6/26.
+ * 鉴权接口
+ * 除白名单外的接口都需要登录鉴权，登录成功后session中创建user对象表示其登录状态
+ * session有效期在app.js中设置
  */
 const router = require('koa-router')();
 
@@ -14,12 +17,13 @@ router.get('/view', async function (ctx, next) {
  * 查看登录状态
  */
 router.get('/islogin', httpResult.resp(async ctx => {
-    let admin = ctx.session.admin;
+    let admin = ctx.session.user;
     return admin;
 }));
 
 /**
  * 登录逻辑
+ * role.type = 0(超管)，1(manager)可以登录
  */
 router.post('/login', httpResult.resp(async ctx => {
 
@@ -29,10 +33,10 @@ router.post('/login', httpResult.resp(async ctx => {
     let err = '';
     log.info('login form : ' + clientIP);
     log.info(ctx.request.body);
-    let adminUser = await models.adminUser.findOne({account : name});
-    if (!adminUser) {
+    let user = await models.user.findOne({account : name});
+    if (!user) {
         err = "用户名不存在";
-    } else if (!adminUser.comparePassword(pwd)) {
+    } else if (!user.comparePassword(pwd)) {
         err = "密码错误";
     }
 
@@ -49,8 +53,8 @@ router.post('/login', httpResult.resp(async ctx => {
         throw err;
     } else {
         //用户登录成功
-        ctx.session.admin = adminUser;
-        return adminUser
+        ctx.session.user = user;
+        return user;
     }
 }));
 
@@ -58,7 +62,7 @@ router.post('/login', httpResult.resp(async ctx => {
  * 获取登录用户信息
  */
 router.get('/user', httpResult.resp(async ctx => {
-    let user = Object.assign({}, ctx.session.admin);
+    let user = Object.assign({}, ctx.session.user);
     delete user.pwd;
     return user;
 }));
@@ -67,9 +71,9 @@ router.get('/user', httpResult.resp(async ctx => {
  * 登出逻辑
  */
 router.get('/out', httpResult.resp(async function (ctx) {
-    let admin = ctx.session.admin;
-    delete ctx.session.admin;
-    return admin;
+    let user = ctx.session.user;
+    delete ctx.session.user;
+    return user;
 }));
 
 module.exports = router;
