@@ -60,17 +60,17 @@
 
 <script>
   import tableToolBar from '@/components/TableToolBar'
-  import { getList,add,remove,customer } from '@/api/customer'
+  import { getList, total, remove } from '@/api/club'
 
   export default {
-    name: 'customer',
+    name: 'club',
 
     components:{
       tableToolBar
     },
 
     async mounted(){
-      this.total = await customer.total();
+      this.total = await total();
       if(this.total > 0){
         this.currentPage = 1;
         this.getDataList();
@@ -92,13 +92,13 @@
     methods : {
       goEdit(id){
         if(id !== undefined){
-          this.$router.push({path: '/customer/edit', query : {id}});
+          this.$router.push({path: '/club/edit', query : {id}});
         }else{
-          this.$router.push({path: '/customer/edit'});
+          this.$router.push({path: '/club/edit'});
         }
       },
       async getDataList(){
-        this.tableData = await customer.list({page : this.currentPage, pageSize : this.pageSize});
+        this.tableData = await getList({page : this.currentPage, pageSize : this.pageSize});
       },
       async handleSearch(keyword){
         this.$message.success(keyword);
@@ -111,7 +111,7 @@
       setPermissions(){},
       showEditDialog(){},
       handleDel(rowData){
-        this.$confirm('该操作将删除此客户数据, 是否继续?', '提示', {
+        this.$confirm('该操作将删除此俱乐部信息, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'

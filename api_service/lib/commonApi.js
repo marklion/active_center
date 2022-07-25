@@ -77,6 +77,7 @@ async function updateById(ctx){
     ctx.assert(id, 'request url param [id] missing');
     let data = ctx.request.body;
     // ctx.assert(data, '');
+    delete data._id;
     return await ctx._model.findOneAndUpdate(_.assign({_id: id}, ctx.query),  {$set : data}, {new: true});
 }
 

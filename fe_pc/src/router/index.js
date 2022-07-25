@@ -61,6 +61,25 @@ export const lastRoutes = [
 
 export const asyncRoutes = [
   {
+    path: '/club',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'clubManager',
+        component: () => import('@/views/club/index'),
+        meta: {title: '俱乐部管理', icon: 'el-icon-user', key: 'club'}
+      },
+      {
+        path: 'edit',
+        name: 'accountEdit',
+        component: () => import('@/views/club/edit'),
+        meta: {title: '信息编辑', icon: 'el-icon-user', key: 'club-edit'},
+        hidden: true
+      }
+    ]
+  },
+  {
     path: '/account',
     component: Layout,
     children: [

@@ -33,7 +33,7 @@
 </template>
 
 <script>
-  import { add,getOne } from '@/api/customer'
+  import { getById, save, updateById } from '@/api/club'
 
   export default {
     name: 'index',
@@ -68,7 +68,7 @@
       next(vm => {
         if (id !== undefined) {
           //获取已存在card，覆盖form
-          getOne(id).then((resp) => {
+          getById(id).then((resp) => {
             vm.form = resp
           })
         }
@@ -76,7 +76,7 @@
     },
     methods: {
       goBack(){
-        this.$router.push({ path: '/customer/index' })
+        this.$router.push({ path: '/club/index' })
       },
       async handleSave(){
         try{
@@ -85,7 +85,12 @@
           this.$message.error('请按照提示修正表单内容');
           return;
         }
-        let result = await add(this.form);
+        if(this.form._id){
+          await updateById(this.form._id, this.form)
+        }else{
+          await save(this.form);
+        }
+
         this.goBack();
       }
     },

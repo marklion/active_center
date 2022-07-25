@@ -6,7 +6,7 @@ async function getVisibleClubs(clubId, result){
         clubs = clubs.concat(await getVisibleClubs(club._id, result));
     }
     if(clubId != null){
-        clubs.push(clubId);
+        clubs.push(clubId.toString());
         result[clubId] = clubs
     }
     return clubs;

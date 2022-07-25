@@ -46,6 +46,10 @@ global.appCache = {
     }else{
       return {club : {$in : clubs}}
     }
+  },
+  canEditClub : function(yourClubId, editClubId){
+    let clubs = appCache.visibleClubs[yourClubId];
+    return yourClubId != editClubId && clubs && clubs.includes(editClubId)
   }
 };
 
