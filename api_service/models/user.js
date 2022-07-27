@@ -41,7 +41,7 @@ adminUserSchema.methods.comparePassword = function(candidatePassword) {
     return isMatch;
 };
 
-let model = mongoose.model('admin_user', adminUserSchema);
+let model = mongoose.model('user', adminUserSchema);
 
 module.exports = model;
 

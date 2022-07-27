@@ -5,15 +5,18 @@
 const router = require('koa-router')();
 const _ = require('lodash');
 const cacheService = require("../services/cache");
+const roleService = require('../services/role');
 
 /**
  * 新增俱乐部，绑定pid
+ * 同时创建该俱乐部3个固定角色，manager，leader，player
  */
 router.post('/', httpResult.resp(async ctx => {
     let user = ctx.session.user;
     let newClub = ctx.request.body;
     newClub.pid = user.club;
     let result = await models.club.create(newClub);
+    await roleService.createDefaultRolesInClub(result._id);
     await cacheService.refreshClubCache();
     return result;
 }));

@@ -14,13 +14,15 @@
         </el-table-column>
         <el-table-column prop="name" label="角色名" align="center">
         </el-table-column>
-        <el-table-column prop="customer_name" label="归属客户" align="center">
+        <el-table-column prop="club.name" label="归属客户" align="center">
           <template slot-scope="scope">
-<!--            <el-tag>{{scope.row.roleType}}级</el-tag>-->
-            <el-tag size="mini">{{scope.row.customer_name || '--'}}</el-tag>
+            <el-tag size="mini">{{scope.row.club.name || '--'}}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="creator.name" label="创建人" align="center">
+          <template slot-scope="scope">
+            <el-tag size="mini">{{(scope.row.creator && scope.row.creator.name) || 'system'}}</el-tag>
+          </template>
         </el-table-column>
         <el-table-column prop="create_time" label="创建时间" align="center">
           <template slot-scope="scope">
