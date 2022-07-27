@@ -18,7 +18,7 @@
         </el-table-column>
         <el-table-column prop="role.name" label="角色" align="center">
         </el-table-column>
-        <el-table-column prop="customer_name" label="归属客户" align="center">
+        <el-table-column prop="club.name" label="俱乐部" align="center">
         </el-table-column>
         <el-table-column prop="create_time" label="创建时间" align="center">
           <template slot-scope="scope">

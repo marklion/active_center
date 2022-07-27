@@ -105,9 +105,9 @@ function dirInit() {
 
 async function dbInit(){
   try{
-    await models.club.remove({});
-    await models.role.remove({});
-    await models.user.remove({});
+    // await models.club.remove({});
+    // await models.role.remove({});
+    // await models.user.remove({});
 
     //这个init 最好在实际使用的时候去掉，万一代码泄漏，超级管理员账户就丢失了。
     let sClub = await models.club.findOne({name : 'root'});

@@ -34,7 +34,7 @@ router.get('/list', httpResult.resp(async ctx => {
     let user = ctx.session.user;
     let query = ctx.query;
 
-    _.assign(query, {removed : 0}, appCache.getClubQueryCondition(user.club));
+    query = _.assign({removed : 0}, appCache.getClubQueryCondition(user.club), query);
     return await models.role.find(query).populate('creator').populate('club');
 }));
 

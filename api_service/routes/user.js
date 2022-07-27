@@ -8,14 +8,20 @@ const cacheService = require('../services/cache');
 
 const httpResult = require('../lib/httpResult');
 
+router.get('/:id', httpResult.resp(async ctx => {
+    let user = ctx.session.user;
+    let id = ctx.params.id;
+    let q = _.assign({_id : id}, {removed : 0}, appCache.getClubQueryCondition(user.club));
+    return await models.user.findOne(q);
+}));
 /**
  * 按条件获取当前账号可见的账号列表
  */
 router.get('/', httpResult.resp(async ctx => {
     let user = ctx.session.user;
     let query = ctx.query;
-    let q = _.assign(query, {removed : 1}, appCache.getClubQueryCondition(user.club));
-    return await models.user.find(q).populate('role');
+    let q = _.assign(query, {removed : 0}, appCache.getClubQueryCondition(user.club));
+    return await models.user.find(q).populate('role').populate('club');
 }));
 
 router.post('/', httpResult.resp(async ctx => {
@@ -26,13 +32,11 @@ router.post('/', httpResult.resp(async ctx => {
         account         : data.account,       //登录名
         pwd             : data.pwd,
         name            : data.name,                               //昵称
+        club            : data.club,
         role            : data.role,
         mobile          : data.mobile,
         privilege       : [],
     };
-    if(data.club){
-        adminUser.club = data.club
-    }
 
     if(data._id){
         await models.user.findOneAndUpdate({_id: data._id}, {$set : adminUser}, {new: true});
@@ -46,11 +50,11 @@ router.post('/', httpResult.resp(async ctx => {
 }));
 
 router.put('/:id', httpResult.resp(async ctx => {
-    let admin = ctx.session.user;
+    let user = ctx.session.user;
     let id = ctx.params.id;
     let body = ctx.request.body;
     ctx.assert(id, 'missing request url param : id');
-    let target = await models.user.findOne({_id : id});
+    let target = await models.user.findOne(_.assign({_id : id}, appCache.getClubQueryCondition(user.club)));
     ctx.assert(target, 'account is not exsit');
 
     ctx.assert(['reset_pwd'].includes(body.type), 'update type is not supported yet : ' + body.type);
@@ -67,7 +71,7 @@ router.put('/:id', httpResult.resp(async ctx => {
 }));
 
 router.del('/:id', httpResult.resp(async ctx => {
-    let admin = ctx.session.user;
+    let user = ctx.session.user;
     let id = ctx.params.id;
     ctx.assert(id, 'missing request url param : id');
     let target = await models.user.findOne(_.assign({_id : id}, appCache.getClubQueryCondition(user.club)));

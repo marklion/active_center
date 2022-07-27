@@ -13,7 +13,7 @@ let adminUserSchema = new Schema({
     role            : {type : ObjectId, ref : 'role'},      //manager，leader，player，root
     privilege       : Object,
     club        : {type : ObjectId, ref : 'club'},
-    creator         : ObjectId,  //对应adminUserModel 的objectId  //除超级管理员外，都有creator
+    creator         : ObjectId,  //userModel 的objectId  //除超级管理员外，都有creator
     last_time       : Date,
     last_ip         : String,
     system          : Number,                              //是否是系统创建 1表示系统创建 不允许修改删除

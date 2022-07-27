@@ -2,7 +2,7 @@ import request from '@/utils/request'
 
 export function getList(query) {
   return request({
-    url: '/api/v1/account',
+    url: '/api/v1/user',
     method: 'get',
     params : query
   })
@@ -10,14 +10,14 @@ export function getList(query) {
 
 export function getById(id){
   return request({
-    url : '/api/v1/account/' + id,
+    url : '/api/rest/user/' + id,
     method : 'get'
   })
 }
 
 export function add(data) {
   return request({
-    url: '/api/v1/account',
+    url: '/api/v1/user',
     method: 'post',
     data
   })
@@ -31,7 +31,7 @@ export function add(data) {
 export function resetPwd(id, data) {
   data = Object.assign({type : 'reset_pwd'}, data)
   return request({
-    url: '/api/v1/account/'+ id,
+    url: '/api/v1/user/'+ id,
     method: 'put',
     data
   })
@@ -39,7 +39,7 @@ export function resetPwd(id, data) {
 
 export function remove(id){
   return request({
-    url: '/api/v1/account/'+ id,
+    url: '/api/v1/user/'+ id,
     method: 'delete'
   })
 }

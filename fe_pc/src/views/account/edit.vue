@@ -22,7 +22,17 @@
           <el-form-item label="账号名称" prop="name">
             <el-input v-model="form.name"></el-input>
           </el-form-item>
-          <el-form-item label="角色" prop="role.name">
+          <el-form-item label="归属俱乐部" prop="club">
+            <el-select v-model="form.club" placeholder="请选择" @change="getVisibleRoles">
+              <el-option
+                v-for="item in clubList"
+                :key="item._id"
+                :label="item.name || '无归属'"
+                :value="item._id">
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="角色" prop="role">
             <el-select v-model="form.role" placeholder="请选择">
               <el-option
                 v-for="item in roleList"
@@ -49,12 +59,14 @@
 <script>
   import { add, getById } from '@/api/account'
   import * as roleApi from '@/api/role'
+  import * as clubApi from '@/api/club'
 
   export default {
     name: 'index',
     data(){
       return {
         id : '',
+        clubList : [],
         roleList : [],
 
         form : {
@@ -62,6 +74,7 @@
           pwd : '',
           pwd2 : '',
           name : '',
+          club : '',
           role : '',
           mobile : '',
         },
@@ -83,6 +96,8 @@
               {required: true, message: '请填写联系人邮箱', trigger: 'blur'},
               {type : 'email', message: '邮箱格式不正确', trigger:'blur'}]
           },
+          club : [{required: true, message:'请选择归属俱乐部',trigger: 'blur'}],
+          role : [{required: true, message:'请选择账号角色',trigger: 'blur'}],
         }
       }
     },
@@ -101,12 +116,16 @@
       next(vm => {
         vm.id = id;
 
-        roleApi.getList().then(roles => {
-          vm.roleList = roles
+        // roleApi.getList().then(roles => {
+        //   vm.roleList = roles
+        // })
+        clubApi.getList().then(clubs => {
+          vm.clubList = clubs
         })
         if (id !== undefined) {
-          //获取已存在card，覆盖form
-          getById(id).then(resp => {
+          //获取已存在user info，覆盖form
+          getById(id).then(async resp => {
+            vm.roleList = await roleApi.getList({club : resp.club})
             vm.form = resp;
           })
         }
@@ -128,10 +147,14 @@
           account : this.form.account,
           pwd : this.form.pwd,
           name : this.form.name,
+          club : this.form.club,
           role : this.form.role,
           mobile : this.form.mobile,
         });
         this.goBack();
+      },
+      async getVisibleRoles(clubId){
+        this.roleList = await roleApi.getList({club : clubId});
       }
     },
   }
