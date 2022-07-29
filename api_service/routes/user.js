@@ -79,4 +79,6 @@ router.del('/:id', httpResult.resp(async ctx => {
     return await target.remove();
 }));
 
+router
+
 module.exports = router;

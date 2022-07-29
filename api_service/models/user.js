@@ -9,20 +9,21 @@ let adminUserSchema = new Schema({
     account         : {type : String, required: true},       //登录名
     pwd             : {type : String, required: true},
     name            : String,                               //昵称
-    mobile          : String,
+    mobile          : {type : String, required: true},
     role            : {type : ObjectId, ref : 'role'},      //manager，leader，player，root
     privilege       : Object,
     club        : {type : ObjectId, ref : 'club'},
     creator         : ObjectId,  //userModel 的objectId  //除超级管理员外，都有creator
     last_time       : Date,
     last_ip         : String,
-    system          : Number,                              //是否是系统创建 1表示系统创建 不允许修改删除
+    system          : {type : Number, default : 0},                        //是否是系统创建 1表示系统创建 不允许修改删除
     removed          : {type : Number, default : 0},                               //是否删除，0=否，1=是
     create_time     : Date,
     update_time     : {type : Date, default: Date.now}
 });
 
 adminUserSchema.index( { account: 1,  removed: 1}, { unique: true } );
+adminUserSchema.index( { mobile: 1,  removed: 1}, { unique: true } );
 
 adminUserSchema.pre('save', function(next){
     let user = this;

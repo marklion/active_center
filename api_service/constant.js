@@ -8,6 +8,12 @@ const constant = {
         MANAGER : 1,
         LEADER : 2,
         PLAYER : 3
+    },
+    ROLE_NAME: {
+        '超级管理员': 0,
+        '管理员': 1,
+        '团长': 2,
+        '玩家': 3
     }
 };
 

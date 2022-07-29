@@ -134,6 +134,7 @@ async function dbInit(){
         account: 'zcadmin',
         pwd: 'zcadmin',
         name: '超级管理员',
+        mobile: '13401175123',
         role: sr._id,
         club : sClub._id,
         privilege : [],

@@ -22,6 +22,9 @@
           <el-form-item label="账号名称" prop="name">
             <el-input v-model="form.name"></el-input>
           </el-form-item>
+          <el-form-item label="手机号" prop="mobile">
+            <el-input v-model="form.mobile"></el-input>
+          </el-form-item>
           <el-form-item label="归属俱乐部" prop="club">
             <el-select v-model="form.club" placeholder="请选择" @change="getVisibleRoles">
               <el-option
@@ -41,9 +44,6 @@
                 :value="item._id">
               </el-option>
             </el-select>
-          </el-form-item>
-          <el-form-item label="联系电话" prop="mobile">
-            <el-input v-model="form.mobile"></el-input>
           </el-form-item>
 
           <el-form-item>
