@@ -20,6 +20,11 @@ router.get('/:id', httpResult.resp(async ctx => {
 router.get('/', httpResult.resp(async ctx => {
     let user = ctx.session.user;
     let query = ctx.query;
+    if(query.roleType){
+        let role = await models.role.findOne({type : +query.roleType, club : query.club});
+        delete query.roleType;
+        query.role = role && role._id;
+    }
     let q = _.assign(query, {removed : 0}, appCache.getClubQueryCondition(user.club));
     return await models.user.find(q).populate('role').populate('club');
 }));

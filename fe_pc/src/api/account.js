@@ -7,6 +7,27 @@ export function getList(query) {
     params : query
   })
 }
+export function getClubPlayers(club){
+  return request({
+    url: '/api/v1/user',
+    method : 'get',
+    params : {
+      club,
+      roleType : 3
+    }
+  })
+}
+
+export function getClubLeaders(club){
+  return request({
+    url: '/api/v1/user',
+    method : 'get',
+    params : {
+      club,
+      roleType : 2
+    }
+  })
+}
 
 export function getById(id){
   return request({
@@ -43,3 +64,5 @@ export function remove(id){
     method: 'delete'
   })
 }
+
+

@@ -61,7 +61,7 @@ let restApi = require('./lib/commonApi');
 router.use(config.basePath + '/rest', restApi.routes(), restApi.allowedMethods());
 
 let apiList = [
-  'auth','role', 'club','user','download','upload'
+  'auth','role', 'club','user','toy','tag','download','upload'
 ];
 apiList.forEach((name) => {
   let controller = require('./routes/' + name);

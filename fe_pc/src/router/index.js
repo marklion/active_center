@@ -68,13 +68,13 @@ export const asyncRoutes = [
         path: 'index',
         name: 'clubManager',
         component: () => import('@/views/club/index'),
-        meta: {title: '俱乐部管理', icon: 'el-icon-user', key: 'club'}
+        meta: {title: '俱乐部管理', icon: 'el-icon-place', key: 'club'}
       },
       {
         path: 'edit',
         name: 'accountEdit',
         component: () => import('@/views/club/edit'),
-        meta: {title: '信息编辑', icon: 'el-icon-user', key: 'club-edit'},
+        meta: {title: '信息编辑', icon: 'el-icon-place', key: 'club-edit'},
         hidden: true
       }
     ]
@@ -115,6 +115,25 @@ export const asyncRoutes = [
         meta: {title: '角色编辑', icon: 'el-icon-user',  key: 'role-edit'},
         hidden: true
       }
+    ]
+  },
+  {
+    path: '/toy',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'toyManage',
+        component: () => import('@/views/toy/index'),
+        meta: {title: '鸽群管理', icon: 'el-icon-house',  key: 'toy'}
+      },
+      // {
+      //   path: 'edit',
+      //   name: 'toyEdit',
+      //   component: () => import('@/views/toy/edit'),
+      //   meta: {title: '鸽群编辑', icon: 'el-icon-user',  key: 'toy-edit'},
+      //   hidden: true
+      // }
     ]
   },
   {

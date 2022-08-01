@@ -10,7 +10,7 @@
       <el-col :span="19">
         <el-card style="margin-top:20px;">
           <div slot="header" class="clearfix">
-            <span>用户列表</span>
+            <span>鸽子列表</span>
             <el-button-group style="float: right">
               <el-button type="primary" size="mini" icon="el-icon-edit" @click="batchHandler('tag')">修改标签</el-button>
 <!--              <el-button type="primary" size="mini" icon="el-icon-warning-outline" @click="batchHandler('black')">加黑</el-button>-->
@@ -18,25 +18,21 @@
             </el-button-group>
           </div>
 
-          <el-table :data="contactList"
+          <el-table :data="toyList"
                     @selection-change="handleSelectionChange"
                     stripe style="width: 100%">
             <el-table-column type="selection" width="55"></el-table-column>
 
-            <el-table-column prop="mobile" label="手机号" align="center"></el-table-column>
+            <el-table-column prop="ring_no" label="环号" align="center"></el-table-column>
 
-            <el-table-column prop="name" label="姓名" align="center"></el-table-column>
+            <el-table-column prop="player.account" label="归属玩家" align="center"></el-table-column>
 
-            <el-table-column prop="gender" label="性别" align="center">
-              <template slot-scope="scope">
-                {{scope.row.gender === 1 ? '男': (scope.row.gender === 0 ? '女' : '') }}
-              </template>
+            <el-table-column prop="leader.account" label="归属团长" align="center">
+
             </el-table-column>
 
-            <el-table-column prop="birthday" label="生日" align="center">
-              <template slot-scope="scope">
-                {{scope.row.birthday | formatDate}}
-              </template>
+            <el-table-column prop="club.name" label="俱乐部" align="center">
+
             </el-table-column>
 
             <el-table-column prop="tags" label="标签" align="center">
@@ -52,9 +48,9 @@
               label="操作"
               width="100">
               <template slot-scope="scope">
-                <el-button @click="editContactHandler(scope.row)" type="text" size="small">编辑</el-button>
+                <el-button @click="editToyHandler(scope.row)" type="text" size="small">编辑</el-button>
                 <el-divider direction="vertical"></el-divider>
-                <el-popconfirm title="确定删除这个号码？" @confirm="delByIdHandler(scope.row._id)">
+                <el-popconfirm title="确定删除这只鸽子吗？" @confirm="delByIdHandler(scope.row._id)">
                   <el-button slot="reference" type="text" size="small">删除</el-button>
                 </el-popconfirm>
 
@@ -82,26 +78,30 @@
     </el-row>
 
 
-    <el-dialog title="添加通讯录" :visible.sync="singleVisible">
-      <el-form :model="form" :rules="contactRules" ref="contactForm">
-        <el-form-item label="姓名" :label-width="formLabelWidth" prop="name">
-          <el-input v-model="form.name"></el-input>
-        </el-form-item>
-        <el-form-item label="手机号" :label-width="formLabelWidth" prop="mobile">
-          <el-input type="number" v-model="form.mobile"></el-input>
-        </el-form-item>
-        <el-form-item label="性别" :label-width="formLabelWidth">
-          <el-select v-model="form.gender">
-            <el-option value="1" label="男">男</el-option>
-            <el-option value="0" label="女">女</el-option>
+    <el-dialog title="添加鸽子" :visible.sync="singleVisible" @opened="setClubAndLoadData">
+      <el-form :model="form" :rules="toyRules" ref="toyForm">
+        <el-form-item label="俱乐部" :label-width="formLabelWidth">
+          <el-select v-model="form.club"
+                     ref="clubSelector"
+                     filterable
+                     default-first-option
+                     placeholder="请选择对应俱乐部"
+                     @change="setClubAndLoadData">
+            <el-option v-for="item in clubList" :value="item._id" :label="item.name">{{item.name}}</el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="生日" :label-width="formLabelWidth">
-          <el-date-picker
-            v-model="form.birthday"
-            type="date"
-            placeholder="选择出生年月">
-          </el-date-picker>
+        <el-form-item label="环号" :label-width="formLabelWidth" prop="ring_no">
+          <el-input v-model="form.ring_no"></el-input>
+        </el-form-item>
+        <el-form-item label="归属玩家" :label-width="formLabelWidth" prop="player">
+          <el-select v-model="form.player" filterable default-first-option placeholder="请选择归属玩家">
+            <el-option v-for="item in playerList" :value="item._id" :label="item.account">{{item.account}}</el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item label="归属团长" :label-width="formLabelWidth" prop="leader">
+          <el-select v-model="form.leader" filterable default-first-option placeholder="请选择归属团长">
+            <el-option v-for="item in leaderList" :value="item._id" :label="item.account">{{item.account}}</el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="标签" :label-width="formLabelWidth">
           <el-select v-model="form.tags" multiple placeholder="请选择标签">
@@ -113,8 +113,8 @@
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
-        <el-button @click="cancelAddContactItem">取 消</el-button>
-        <el-button type="primary" @click="addContactItem">确 定</el-button>
+        <el-button @click="cancelAddToy">取 消</el-button>
+        <el-button type="primary" @click="addToyItem">确 定</el-button>
       </div>
     </el-dialog>
 
@@ -170,8 +170,10 @@
 <script>
   import tableToolBar from '@/components/TableToolBar'
 
+  import * as toyApi from '@/api/toy'
   import * as tagApi from '@/api/tag'
-  import * as contactApi from '@/api/contact'
+  import * as userApi from '@/api/account'
+  import * as clubApi from '@/api/club'
 
   export default {
     name: 'index',
@@ -187,15 +189,19 @@
         singleVisible : false,
         formLabelWidth : '120px',
         form : {
-          name : '',
-          mobile : '',
-          gender : '',
-          birthday : '',
+          ring_no : '',
+          player : '',
+          leader : '',
+          club : '',
+          house_no : '',
           tags : [],
           comment : ''
         },
-        contactRules: {
-          name : [{required:true, message:'请输入客户姓名', trigger: 'blur'}],
+
+        loadingPlayer: false,
+
+        toyRules: {
+          club : [{required:true, message:'请选择归属俱乐部', trigger: 'blur'}],
           mobile : [
             {required: true, message:'请输入手机号码', trigger: 'blur'},
             {min: 11, max: 11, message:'请输入正确格式的手机号码', trigger: 'blur'}
@@ -209,21 +215,31 @@
 
 
         tagMap:{},
+        clubList:[],
+        playerList:[],
+        leaderList:[],
         tagList:[],
-        contactList :[],
-        selectedContacts : []
+        toyList :[],
+        selectedToys : []
       }
     },
     methods : {
       async refreshView(){
         await this.loadTags();
-        this.loadContacts();
+        await this.loadToys();
+        this.clubList = await clubApi.getList();
       },
       getTagName(tagId){
         return this.tagMap[tagId].name;
       },
-      async loadContacts(){
-        this.contactList = await contactApi.getList();
+      async loadToys(){
+        this.toyList = await toyApi.getList();
+      },
+      async loadPlayer(club){
+        this.playerList = await userApi.getClubPlayers(club);
+      },
+      async loadLeader(club){
+        this.leaderList = await userApi.getClubLeaders(club);
       },
       async loadTags(){
         this.tagList = await tagApi.getList();
@@ -248,45 +264,55 @@
         if(index === 0){
           //single add
           this.singleVisible = true;
-          this.resetContactForm();
+          this.resetToyForm();
+
         }
         if(index === 1){
           //batch import
           this.batchVisible = true;
         }
       },
-      async editContactHandler(data){
-        this.form = _.cloneDeep(data)
+      async editToyHandler(data){
+        let cloneData = _.cloneDeep(data)
+        this.form = {
+          _id : cloneData._id,
+          ring_no : cloneData.ring_no,
+          player : cloneData.player._id,
+          leader : cloneData.leader._id,
+          club : cloneData.club._id,
+          house_no : cloneData.house_no,
+          tags : cloneData.tags,
+          comment : cloneData.comment
+        }
         this.singleVisible = true;
       },
       async delByIdHandler(id){
-        await contactApi.remove(id);
+        await toyApi.remove(id);
         this.$message({type : 'success', message: '删除成功'})
         this.refreshView();
       },
-      async addContactItem(){
-        this.$refs.contactForm.validate(async valid => {
-          if(valid){
-            if(this.form._id){
-              await contactApi.updateById(this.form._id, this.form);
-            }else{
-              await contactApi.add(this.form);
-            }
-            this.refreshView();
-            this.$message({
-              type: 'success',
-              message: '添加成功'
-            });
-            this.singleVisible = false;
-          }else{
-            return false;
+      async addToyItem() {
+        let valid = await this.$refs.toyForm.validate();
+        if (valid) {
+          if (this.form._id) {
+            await toyApi.updateById(this.form._id, this.form);
+          } else {
+            await toyApi.add(this.form);
           }
-        })
+          await this.refreshView();
+          this.$message({
+            type: 'success',
+            message: '添加成功'
+          });
+          this.singleVisible = false;
+        } else {
+          return false;
+        }
       },
-      async submitContactFile(){
-        //此处可以是先校验文件，然后再做插入。目前的策略是直接导入号码文件，然后返回结果
-        this.$refs.uploadContact.submit();
-      },
+      // async submitContactFile(){
+      //   //此处可以是先校验文件，然后再做插入。目前的策略是直接导入号码文件，然后返回结果
+      //   this.$refs.uploadContact.submit();
+      // },
       async importSuccHandler(resp){
         this.$message({
           type : 'success',
@@ -295,8 +321,8 @@
         this.batchVisible = false;
         this.refreshView();
       },
-      cancelAddContactItem(){
-        this.resetContactForm()
+      cancelAddToy(){
+        this.resetToyForm()
         this.singleVisible = false;
       },
       async addTag(){
@@ -323,23 +349,24 @@
         this.refreshView();
       },
       async handleSearch(key){
-        this.contactList = await contactApi.getList(key ? {mobile : key} : undefined);
+        this.toyList = await toyApi.getList(key ? {ring_no : key} : undefined);
       },
       handleSelectionChange(val){
-        this.selectedContacts = val;
+        this.selectedToys = val;
       },
-      resetContactForm(){
+      resetToyForm(){
         this.form = {
-          name : '',
-          mobile : '',
-          gender : '',
-          birthday : '',
+          club : '',
+          ring_no : '',
+          player : '',
+          leader : '',
+          house_no : '',
           tags : [],
           comment : ''
         }
       },
       async batchHandler(type){
-        if(this.selectedContacts.length === 0){
+        if(this.selectedToys.length === 0){
           return this.$message({type : 'error', message: '没有选中的条目'})
         }
         switch(type){
@@ -351,22 +378,22 @@
             break;
           }
           case 'del':{
-            let ids = this.selectedContacts.map(item => item._id)
+            let ids = this.selectedToys.map(item => item._id)
             this.doBatchDel(ids)
             break;
           }
         }
       },
       async doBatchDel(ids){
-        await contactApi.removeBatch(ids);
+        // await contactApi.removeBatch(ids);TODO
         this.refreshView();
       },
       cancelTagEdit(){
         this.tagEditVisible = false;
       },
       async tagUpdateHandler(type){
-        let ids = this.selectedContacts.map(item => item._id)
-        await contactApi.updateBatch({
+        let ids = this.selectedToys.map(item => item._id)
+        await toyApi.updateBatch({
           ids, type, tags : this.tagEditForm
         });
         this.$message({type : 'success', message : '更新标签成功'})
@@ -376,7 +403,15 @@
         this.tagEditForm = [];
       },
       downloadTemplate(){
-        contactApi.downloadTmpl();
+        toyApi.downloadTmpl();
+      },
+      async setClubAndLoadData(club){
+        if(!club){
+          club = this.clubList[0]._id;
+          this.$set(this.form, 'club', club);
+        }
+        await this.loadPlayer(club)
+        await this.loadLeader(club)
       }
     }
   }
