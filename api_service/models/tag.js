@@ -22,7 +22,7 @@ let schema = new Schema({
     update_time     : {type : Date, default: Date.now}
 });
 
-schema.index( {   name: 1,club: 1}, { unique: true } );
+schema.index( { name: 1, club: 1}, { unique: true } );
 
 let model = mongoose.model("tag", schema);
 module.exports = model;

@@ -28,14 +28,23 @@ export function updateById(id, data) {
     data
   })
 }
-//
-// export function deleteRole(id) {
-//   return request({
-//     url: '/api/v1/role/' + id,
-//     method: 'delete',
-//   })
-// }
-//
+
+export function updateBatch(data) {
+  return request({
+    url: '/api/v1/toy/batch',
+    method: 'put',
+    data
+  })
+}
+
+export function deleteBatch(data) {
+  return request({
+    url: '/api/v1/toy/batch',
+    method: 'delete',
+    data
+  })
+}
+
 // export let role = {
 //
 // }

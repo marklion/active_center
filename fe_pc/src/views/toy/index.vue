@@ -69,7 +69,7 @@
           </div>
           <div><el-tag
             v-for="tag in tagList"
-            :key="tag.name"
+            :key="tag._id"
             closable @close="removeTag(tag._id)">
             {{tag.name}}（{{tag.ref_count}}）
           </el-tag></div>
@@ -118,21 +118,21 @@
       </div>
     </el-dialog>
 
-    <el-dialog title="导入通讯录" :visible.sync="batchVisible">
+    <el-dialog title="导入鸽子" :visible.sync="batchVisible">
       <el-form>
-        <el-form-item label="通讯录文件" :label-width="formLabelWidth">
+        <el-form-item label="鸽子文件" :label-width="formLabelWidth">
           <el-upload
-            :auto-upload="false" ref="uploadContact"
+            :auto-upload="false" ref="uploadToy"
             :on-success="importSuccHandler"
             drag :limit="1" :with-credentials="true" accept=".xls, .xlsx"
-            action="/api/v1/upload/contact">
+            action="/api/v1/upload/toy">
             <i class="el-icon-upload"></i>
             <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
             <div class="el-upload__tip" slot="tip">
-              请上传excel（.xls、.xlsx）文件，一次最多5万条号码<br>
-              姓名和号码拦为必填项，如果有多个标签请用逗号（,）分割<br>
+              请上传excel（.xls、.xlsx）文件，一次最多5万条记录<br>
+              环号、团长，玩家栏为必填项，如果有多个标签请用逗号（,）分割<br>
               文件中的标签如果不存在，会自动创建<br>
-              <el-link icon="el-icon-download" type="primary" @click="downloadTemplate">导入模板下载</el-link>
+              <el-link icon="el-icon-download" type="primary" @click="doDownloadTemplate">导入模板下载</el-link>
             </div>
           </el-upload>
         </el-form-item>
@@ -140,7 +140,7 @@
       <div slot="footer" class="dialog-footer">
 
         <el-button @click="batchVisible = false">取 消</el-button>
-        <el-button type="primary" @click="submitContactFile">确 定</el-button>
+        <el-button type="primary" @click="submitToyFile">确 定</el-button>
       </div>
     </el-dialog>
 
@@ -174,6 +174,7 @@
   import * as tagApi from '@/api/tag'
   import * as userApi from '@/api/account'
   import * as clubApi from '@/api/club'
+  import {downloadTemplate} from "@/api/download";
 
   export default {
     name: 'index',
@@ -230,6 +231,7 @@
         this.clubList = await clubApi.getList();
       },
       getTagName(tagId){
+        console.log(tagId)
         return this.tagMap[tagId].name;
       },
       async loadToys(){
@@ -265,7 +267,6 @@
           //single add
           this.singleVisible = true;
           this.resetToyForm();
-
         }
         if(index === 1){
           //batch import
@@ -309,10 +310,10 @@
           return false;
         }
       },
-      // async submitContactFile(){
-      //   //此处可以是先校验文件，然后再做插入。目前的策略是直接导入号码文件，然后返回结果
-      //   this.$refs.uploadContact.submit();
-      // },
+      async submitToyFile(){
+        //此处可以是先校验文件，然后再做插入。目前的策略是直接导入文件，然后返回结果
+        this.$refs.uploadToy.submit();
+      },
       async importSuccHandler(resp){
         this.$message({
           type : 'success',
@@ -385,7 +386,7 @@
         }
       },
       async doBatchDel(ids){
-        // await contactApi.removeBatch(ids);TODO
+        await toyApi.deleteBatch(ids);
         this.refreshView();
       },
       cancelTagEdit(){
@@ -402,8 +403,8 @@
 
         this.tagEditForm = [];
       },
-      downloadTemplate(){
-        toyApi.downloadTmpl();
+      doDownloadTemplate(){
+        downloadTemplate({name: 'toyTmpl'})
       },
       async setClubAndLoadData(club){
         if(!club){

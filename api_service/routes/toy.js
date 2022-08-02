@@ -4,9 +4,40 @@
  */
 const router = require('koa-router')();
 const _ = require('lodash');
-// const toyService = require('../service/toy');
 const qs = require('qs');
 const utils = require('../lib/utils');
+import {updateTagRefCount} from '../services/tag'
+
+/**
+ * 批量操作，更新鸽子标签
+ */
+router.put('/batch', httpResult.resp(async ctx => {
+    let {club, _id} = ctx.session.user;
+    let body = ctx.request.body;
+
+    let toys = await models.toy.find(_.assign({_id : {$in : body.ids}}, appCache.getClubQueryCondition(club)));
+    ctx.assert(toys.length === body.ids.length, '目标数据不存在');
+
+    if(body.type === 'cover'){
+        await models.toy.updateMany({_id : {$in : body.ids}}, {$set : {tags : body.tags}})
+    }else if(body.type === 'append'){
+        for(let c of toys){
+            let updateResult = await c.updateOne({$addToSet : {tags: {$each: body.tags}}});
+        }
+    }
+    await updateTagRefCount('toy');
+    return 1;
+}));
+
+router.del('/batch', httpResult.resp(async ctx => {
+    let {club} = ctx.session.user;
+    let ids = ctx.request.body;
+
+    let result = await models.toy.remove(_.assign({_id : {$in : ids}},appCache.getClubQueryCondition(club)));
+    await updateTagRefCount('toy');
+    return result;
+}));
+
 
  /**
   * 获取鸽子列表
@@ -71,7 +102,8 @@ router.del('/:id', httpResult.resp(async ctx => {
     }
     return await toy.remove();
 }))
-//
+
+
 // /**
 //  *
 //  */
@@ -93,68 +125,6 @@ router.del('/:id', httpResult.resp(async ctx => {
 //     }
 //
 //     return resp;
-// }));
-
-
-router.put('/batch', httpResult.resp(async ctx => {
-    let {customer_chain, customer_name, _id} = ctx.session.admin;
-    let body = ctx.request.body;
-
-    let contacts = await models.contact.find({_id : {$in : body.ids}, customer_chain: new RegExp(`^${customer_chain}`)});
-    ctx.assert(contacts.length === body.ids.length, '目标数据不存在');
-
-    if(body.type === 'cover'){
-        await models.contact.updateMany({_id : {$in : body.ids}}, {$set : {tags : body.tags}})
-    }else if(body.type === 'append'){
-        for(let c of contacts){
-            let updateResult = await c.updateOne({$addToSet : {tags: {$each: body.tags}}});
-        }
-    }
-    await contactService.updateTagRefCount();
-    return 1;
-}));
-
-router.del('/batch', httpResult.resp(async ctx => {
-    let {customer_chain} = ctx.session.admin;
-    let ids = ctx.request.body;
-
-    let result = await models.contact.remove({_id : {$in : ids}, customer_chain: new RegExp(`^${customer_chain}`), status : 1});
-    await contactService.updateTagRefCount();
-    return result;
-}));
-
-
-// /**
-//  * 编辑角色名称和权限
-//  */
-// router.put('/edit/:id', httpResult.resp(async ctx => {
-//     let _id = ctx.params.id;
-//     let { name,menus } = ctx.request.body;
-//     let info = {};
-//     if(name){
-//         info.name = name;
-//     }
-//     if(menus){
-//         info.menus = menus;
-//     }
-//     return await models.role.findOneAndUpdate({_id}, {$set : info}, {new: true});
-// }));
-
-// /**
-
-// /**
-//  * 删除角色
-//  */
-// router.del('/:id', httpResult.resp(async ctx => {
-//     let admin = ctx.session.admin;
-//     let roleId = ctx.params.id;
-
-//     let accounts = await models.adminUser.find({role : roleId});
-//     if(accounts && accounts.length > 0){
-//         throw new Error("Can't delete, other account still using this role");
-//     }else{
-//         return await models.role.findOneAndUpdate({_id : roleId}, {$set : {status : 0}});
-//     }
 // }));
 
 module.exports = router;

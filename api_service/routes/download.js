@@ -1,7 +1,9 @@
 const router = require('koa-router')();
 
 const map = {
-    userTmpl : '会员账号批量导入模板.xlsx'
+    userTmpl : '会员账号批量导入模板.xlsx',
+    toyTmpl : '鸽子批量导入模板.xlsx',
+
 }
 
 router.get('/template', httpResult.file(async ctx => {

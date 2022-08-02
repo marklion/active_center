@@ -4,6 +4,7 @@ const moment = require('moment');
 const {GridFsStorage} = require('multer-gridfs-storage');
 const utils = require('../lib/utils');
 const _ = require('lodash');
+const tagService = require('../services/tag');
 
 let seq = 0;
 
@@ -45,7 +46,7 @@ const gridFs = multer({storage});
 // });
 
 /**
- * 单上传媒体文件接口
+ * 批量上传用户文件接口
  */
 router.post('/user', gridFs.single('file'), httpResult.resp(async ctx => {
     let file = ctx.req.file;
@@ -87,11 +88,6 @@ router.post('/user', gridFs.single('file'), httpResult.resp(async ctx => {
         let roleType = roleName === '团长' ? constant.ROLE_TYPE.LEADER : constant.ROLE_TYPE.PLAYER;
         let createRole = await models.role.findOne({club : belongClub, type : roleType});
         ctx.assert(createRole, 'system error, role not exist : ' + roleName);
-        let mobile = r['手机号'];
-        ctx.assert(mobile && mobile.match(mobileValidRegx), 'mobile not valid: ' + mobile);
-        let account = r['账号'] || mobile;
-        let pwd = r['密码'] || mobile.substring(5);
-        let name = r['账号名称'] || mobile;
 
         importList.push({
             account, pwd, name, mobile,
@@ -104,6 +100,92 @@ router.post('/user', gridFs.single('file'), httpResult.resp(async ctx => {
     let resp = {total : importList.length, success : 0, message : '导入成功'};
     try{
         await models.user.insertMany(importList);
+        resp.success = resp.total;
+    }catch(err){
+        resp.success = err.insertedDocs.length;
+        resp.message = err.message
+    }
+    return resp;
+}));
+
+router.post('/toy', gridFs.single('file'), httpResult.resp(async ctx => {
+    let file = ctx.req.file;
+    // log.debug(file);
+    let result = file.originalname.match(/\.(.*)$/);
+    let fileType = result && result[1];
+
+    let inputStream = gfs.createReadStream({_id : file.id});
+    let xlsResult = {};
+
+    switch(fileType){
+        case 'xlsx':
+        case 'xls': {
+            file.buffer = await streamToBuffer(inputStream);
+            xlsResult = utils.commonXlsxFileParser(file);
+            break;
+        }
+        default : {
+            ctx.assert(false, 'unsupported file type: ' + fileType)
+        }
+    }
+    ctx.assert(xlsResult.code === 0, xlsResult.msg);
+
+    let {club, role, _id} = ctx.session.user;
+
+    let loginRole = await models.role.findOne({_id : role});
+    let importList = [];
+
+    let tagMap;
+    for(let r of xlsResult.data){
+        let belongClub = club;
+        if(r.club && loginRole.type === constant.ROLE_TYPE.SUPER_ADMIN){
+            let clubInst = await models.club.findOne({_id : r.club})
+            ctx.assert(clubInst, 'club field error, not exist: ' + r.club)
+            belongClub = r.club;
+        }
+        if(!tagMap){
+            let allTags = await models.tag.find(_.assign({removed : 0}, appCache.getClubQueryCondition(belongClub))).lean();
+            tagMap = _.keyBy(allTags, 'name');
+        }
+        let ring_no = r['环号'];
+        ctx.assert(ring_no && ring_no.match(/^\d*$/), 'ring_no error, unsupported ring_no : ' + ring_no);
+        let leader = r['团长'];
+        ctx.assert(leader, 'required field missing : leader');
+        let leaderObj = await models.user.findOne(_.assign({account : leader}, appCache.getClubQueryCondition(belongClub)));
+        ctx.assert(leaderObj, 'leader not exist : ' + leader);
+        let player = r['玩家'];
+        ctx.assert(player, 'required field missing : player');
+        let playerObj = await models.user.findOne(_.assign({account : player}, appCache.getClubQueryCondition(belongClub)));
+        ctx.assert(playerObj, 'leader not exist : ' + player);
+
+        let tags = [];
+        for(let name of (r['标签'] || '').split(',')){
+            if (!name){
+                continue;
+            }
+            if(!tagMap[name]){
+                let tag = await models.tag.create({name, type : 'toy', club : belongClub, creator : _id, create_time : new Date()});
+                tagMap[tag.name] = tag;
+            }
+            tags.push(tagMap[name]._id.toString());//这个toString不能省略，不然会出现计数不准的问题。
+        }
+
+        importList.push({
+            ring_no,
+            leader : leaderObj._id,
+            player : playerObj._id,
+            house_no : r['鸽棚号'],
+            club : belongClub,
+            tags,
+            comment : r['备注'], //警惕用户输入，造成数据库攻击
+            creator : _id,
+            create_time : new Date()
+        })
+    }
+    let resp = {total : importList.length, success : 0, message : '导入成功'};
+    try{
+        await models.toy.insertMany(importList);
+        await tagService.updateTagRefCount('toy');
         resp.success = resp.total;
     }catch(err){
         resp.success = err.insertedDocs.length;
