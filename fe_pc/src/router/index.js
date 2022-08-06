@@ -137,6 +137,25 @@ export const asyncRoutes = [
     ]
   },
   {
+    path: '/template',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'templateManage',
+        component: () => import('@/views/template/index'),
+        meta: {title: '赛事模板管理', icon: 'el-icon-s-grid',  key: 'template'}
+      },
+      {
+        path: 'edit',
+        name: 'templateEdit',
+        component: () => import('@/views/template/edit'),
+        meta: {title: '赛事模板编辑', icon: 'el-icon-s-grid',  key: 'template-edit'},
+        hidden: true
+      }
+    ]
+  },
+  {
     path: '/example',
     component: Layout,
     redirect: '/example/table',

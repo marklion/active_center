@@ -1,35 +1,23 @@
 <template>
   <div class="app-container">
-    <el-row>
-      <el-form :inline="true" :model="filter">
-        <el-form-item label="名称" size="small">
-          <el-input v-model="filter.name" placeholder="模板名称"></el-input>
-        </el-form-item>
-        <el-form-item label="模板类型" size="small">
-          <el-select v-model="filter.type" placeholder="请选择">
-            <el-option v-for="item in typeOptions"
-                       :key="item.value"
-                       :label="item.label"
-                       :value="item.value"></el-option>
-          </el-select>
-        </el-form-item>
-<!--        <el-form-item>-->
-          <el-button type="primary" size="small" @click="doQuery">查询</el-button>
-<!--        </el-form-item>-->
-<!--        <el-form-item>-->
-          <el-button type="primary" size="small" @click="goEdit()" icon="el-icon-plus">新建模板</el-button>
-<!--        </el-form-item>-->
-      </el-form>
-    </el-row>
-    <el-row  :gutter="10">
-      <el-col :span="4" v-for="item in list" :key="item._id">
-        <templateCard
-          :item="item"
-          :hasAction="true"
-          @edit="goEdit"
-          @delete="doDel"
-          @click="onClickTemplate"
-        ></templateCard>
+    <tableToolBar
+      @click_btn_list="handleListClick"
+      @click_reset="getTemplateList"
+      @click_search="handleSearch"></tableToolBar>
+
+    <el-row :gutter="15" v-loading="listLoading">
+      <el-empty v-if="(list.length === 0)" :description="emptyTip"></el-empty>
+      <el-col v-else span="24" v-for="item in list" :key="item._id">
+        <el-card shadow="hover" :body-style="{padding: 0}" class="template-card-panel">
+            <el-card>
+              <div slot="header" class="clearfix">
+                <span>{{item.name}}</span>
+                <el-button class="btn-type-4" type="primary" size="mini" icon="el-icon-delete" @click="onDeleteTemplate(item._id)">删除</el-button>
+                <el-button class="btn-type-4" type="primary" size="mini" icon="el-icon-edit" @click="onEditTemplate(item)">编辑</el-button>
+              </div>
+              <el-tag v-for="menu in item.items">{{menu.name}}</el-tag>
+            </el-card>
+        </el-card>
       </el-col>
     </el-row>
   </div>
@@ -39,14 +27,22 @@
   import {getList, remove} from '@/api/template'
   import textCoverUrl from '@/assets/card_cover.jpg'
   import geoCoverUrl from '@/assets/geo_bg.jpg'
-  import templateCard from '@/components/TemplateCard'
+  import tableToolBar from "@/components/TableToolBar";
 
   export default {
-    name: 'messageTemplate',
-    components: {  templateCard  },
+    name: 'activeTemplate',
+    components:{
+      tableToolBar
+    },
     data(){
       return {
+        listLoading : false,
         list : [],
+        emptyTip : '请新增赛事模板',
+
+
+
+
         typeOptions : [
           {
             label : '-全部-'
@@ -79,6 +75,21 @@
     },
 
     methods: {
+      async handleListClick(index){
+        if(index === 0){
+          this.addTemplate();
+        }
+
+      },
+
+      async getTemplateList(){
+        await this.fetchList();
+      },
+
+      addTemplate(){
+        this.goEdit();
+      },
+
       goEdit(tmpl){
         if(tmpl !== undefined){
           this.$router.push({path: '/template/edit', query : {id : tmpl._id}});
@@ -108,17 +119,6 @@
         await this.fetchList(this.filter);
       },
 
-      getCoverImgUrl(template){
-        let url = textCoverUrl;
-        if(template.type === 1){
-          url = geoCoverUrl;
-        }
-        if(template.type >= 2){
-          url = template.media && (template.media.url || template.media.thumbnail_url);
-        }
-        return url;
-      },
-
       async fetchList(query = {}){
         let q = {};
         if(query.name){
@@ -137,4 +137,7 @@
 </script>
 
 <style scoped>
+.template-card-panel{
+  margin-top: 15px;
+}
 </style>
