@@ -4,7 +4,7 @@ const Schema = mongoose.Schema,
     ObjectId = Schema.ObjectId;
 
 let activeSchema = new Schema({
-    name            : {type : String, required: true, unique : true},       //活动名称
+    name            : {type : String, required: true},       //活动名称
     club            : {type : ObjectId, required: true, ref : 'club'},
     items           : [{
         code : {type : String, required : true},
@@ -18,6 +18,8 @@ let activeSchema = new Schema({
     create_time     : Date,
     update_time     : {type : Date, default: Date.now}
 });
+
+activeSchema.index( { name: 1,  removed: 1}, { unique: true } );
 
 let model = mongoose.model('active_template', activeSchema);
 

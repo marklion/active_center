@@ -44,7 +44,7 @@
                     <el-input-number
                       size="small"
                       v-model="item.toy_limit"
-                      @change="handleBetValueClose" :min="1" :max="10">
+                      :min="1" :max="10">
                     </el-input-number>
                   </el-form-item>
                   <el-form-item label="下注金额">
@@ -84,7 +84,7 @@
 </template>
 
 <script>
-  import { getById, saveTemplate } from '@/api/template'
+  import { getById, saveTemplate, update } from '@/api/template'
 
   export default {
     name: 'edit',
@@ -138,9 +138,6 @@
           //获取已存在card，覆盖form
           getById(id).then((resp) => {
             vm.form = resp
-            //接口获取的数据中已经直接关联提取了media实体，但是form中的media实际上应该还mediaId，所以有下面两部操作
-            // vm.media = resp.media
-            // vm.form.media = vm.media && vm.media._id
           })
         }
       })
@@ -200,6 +197,7 @@
       },
 
       handleInputConfirm() {
+        console.log(123, this.inputValue)
         let inputValue = this.inputValue;
         if (inputValue) {
           this.currentEditItem.bet_values.push(inputValue);
@@ -213,7 +211,11 @@
         console.log('model form = ',this.form)
         //提交表单
         try{
-          let result = await saveTemplate(this.form)
+          if(this.form._id){
+            await update(this.form._id, this.form)
+          }else{
+            await saveTemplate(this.form)
+          }
           this.$message.success('赛事模板添加成功！')
           //成功
           this.$router.push({ path: '/template/index' })

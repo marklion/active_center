@@ -7,15 +7,15 @@
 
     <el-row :gutter="15" v-loading="listLoading">
       <el-empty v-if="(list.length === 0)" :description="emptyTip"></el-empty>
-      <el-col v-else span="24" v-for="item in list" :key="item._id">
+      <el-col v-else :span="24" v-for="item in list" :key="item._id">
         <el-card shadow="hover" :body-style="{padding: 0}" class="template-card-panel">
             <el-card>
               <div slot="header" class="clearfix">
                 <span>{{item.name}}</span>
-                <el-button class="btn-type-4" type="primary" size="mini" icon="el-icon-delete" @click="onDeleteTemplate(item._id)">删除</el-button>
-                <el-button class="btn-type-4" type="primary" size="mini" icon="el-icon-edit" @click="onEditTemplate(item)">编辑</el-button>
+                <el-button class="btn-type-4" type="primary" size="mini" icon="el-icon-delete" @click="doDel(item._id)">删除</el-button>
+                <el-button class="btn-type-4" type="primary" size="mini" icon="el-icon-edit" @click="goEdit(item)">编辑</el-button>
               </div>
-              <el-tag v-for="menu in item.items">{{menu.name}}</el-tag>
+              <span>项目：</span><el-tag v-for="menu in item.items">{{menu.name}} - {{menu.bet_values}}</el-tag>
             </el-card>
         </el-card>
       </el-col>
@@ -39,35 +39,6 @@
         listLoading : false,
         list : [],
         emptyTip : '请新增赛事模板',
-
-
-
-
-        typeOptions : [
-          {
-            label : '-全部-'
-          },
-         {
-          value : 0,
-          label : '纯文本'
-        },{
-          value : 1,
-          label : '位置消息'
-        },{
-          value : 2,
-          label : '文件消息'
-        },{
-          value : 3,
-          label : '单卡片'
-        },{
-          value : 4,
-          label : '多卡片'
-        }
-        ],
-        filter : {
-          name : '',
-          type : ''
-        }
       }
     },
     created(){
@@ -75,11 +46,13 @@
     },
 
     methods: {
+      async handleSearch(keyword){
+        await this.fetchList({name : keyword})
+      },
       async handleListClick(index){
         if(index === 0){
           this.addTemplate();
         }
-
       },
 
       async getTemplateList(){
@@ -98,10 +71,10 @@
         }
       },
 
-      async doDel(tmpl){
+      async doDel(tmpl_id){
         try{
           await this.$confirm('确认删除该模板吗？', '提示',{type : 'warning'});
-          let res = await remove(tmpl._id);
+          let res = await remove(tmpl_id);
           this.doQuery();
             this.$message({
               type : 'success',
@@ -139,5 +112,9 @@
 <style scoped>
 .template-card-panel{
   margin-top: 15px;
+}
+.btn-type-4{
+  float : right;
+  margin-right: 10px;
 }
 </style>

@@ -15,6 +15,13 @@ export function getList(query) {
   })
 }
 
+export function remove(id){
+  return request({
+    url : '/api/rest/activeTemplate/' + id,
+    method: 'delete'
+  })
+}
+
 export function saveTemplate(tmpl) {
   return request({
     url: '/api/v1/activeTemplate',
@@ -22,6 +29,14 @@ export function saveTemplate(tmpl) {
     data : tmpl,
   })
   // params for dev temp
+}
+
+export function update(id, tmpl){
+  return request({
+    url : '/api/rest/activeTemplate/' + id,
+    method: 'put',
+    data : tmpl
+  })
 }
 //
 // // export function save(media_id, list) {
