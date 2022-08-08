@@ -225,9 +225,6 @@
         }
       },
 
-
-
-
       // getAnEmptyCard() {
       //   return {
       //     media: null,

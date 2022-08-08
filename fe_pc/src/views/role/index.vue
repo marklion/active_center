@@ -31,15 +31,15 @@
         </el-table-column>
         <el-table-column label="操作" align="center">
           <template slot-scope="scope">
-            <el-button type="success" :disabled="!scope.row.editable"
+            <el-button type="success" :disabled="!isEditable(scope.row)"
                        @click.native.prevent="setPermissions(scope.row)" size="mini">
               分配权限
             </el-button>
-            <el-button type="warning" :disabled="!scope.row.editable"
+            <el-button type="warning" :disabled="!isEditable(scope.row)"
                        @click.native.prevent="showEditDialog(scope.row)" size="mini">
               编辑
             </el-button>
-            <el-button type="danger" :disabled="!scope.row.editable"
+            <el-button type="danger" :disabled="!isEditable(scope.row)"
                        @click.native.prevent="handleDel(scope.row)" size="mini">
               删除
             </el-button>
@@ -101,8 +101,12 @@
         if(index === 0){
           this.roleEdit();
         }
-
       },
+
+      isEditable(roleData){
+          return roleData && roleData.editable
+      },
+
       async roleEdit(id = '', inputValue = ''){
         try{
           let confirm = await this.$prompt('请输入新角色名', '', {

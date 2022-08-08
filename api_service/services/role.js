@@ -3,7 +3,7 @@ async function createDefaultRolesInClub(clubId){
         name : '管理员',
         type : constant.ROLE_TYPE.MANAGER,
         club : clubId,
-        menus : [],
+        menus : ['account','account-edit','role','role-edit','toy','template','template-edit'],
         editable : false,
         create_time : new Date(),
     });

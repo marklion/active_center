@@ -91,6 +91,7 @@ const actions = {
         if(role.name !== 'root'){
           menus = doFilter(menus, filter);
         }
+
         commit('SET_MENUS', menus)
         resolve(menus)
       }).catch(error => {
