@@ -89,6 +89,12 @@ router.post('/user', gridFs.single('file'), httpResult.resp(async ctx => {
         let createRole = await models.role.findOne({club : belongClub, type : roleType});
         ctx.assert(createRole, 'system error, role not exist : ' + roleName);
 
+        let mobile = r['手机号'];
+        ctx.assert(mobile && mobile.match(mobileValidRegx), 'mobile not valid: ' + mobile);
+        let account = r['账号'] || mobile;
+        let pwd = r['密码'] || mobile.substring(5);
+        let name = r['账号名称'] || mobile;
+
         importList.push({
             account, pwd, name, mobile,
             role : createRole._id,

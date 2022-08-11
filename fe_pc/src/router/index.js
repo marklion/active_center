@@ -156,6 +156,25 @@ export const asyncRoutes = [
     ]
   },
   {
+    path: '/active',
+    component: Layout,
+    children: [
+      {
+        path: 'index',
+        name: 'activeManage',
+        component: () => import('@/views/active/index'),
+        meta: {title: '赛事管理', icon: 'el-icon-trophy-1',  key: 'active'}
+      },
+      {
+        path: 'edit',
+        name: 'activeEdit',
+        component: () => import('@/views/active/edit'),
+        meta: {title: '赛事编辑', icon: 'el-icon-trophy-1',  key: 'active-edit'},
+        hidden: true
+      }
+    ]
+  },
+  {
     path: '/example',
     component: Layout,
     redirect: '/example/table',

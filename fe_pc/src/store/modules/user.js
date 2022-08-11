@@ -12,6 +12,7 @@ const getDefaultState = () => {
     name: '',
     avatar: '',
     role : '',
+    role_type : -1,
     menus:[]
   }
 }
@@ -43,6 +44,9 @@ const mutations = {
   },
   SET_ROLE: (state, role) => {
     state.role = role
+  },
+  SET_ROLE_TYPE: (state, role_type) => {
+    state.role_type = role_type
   }
 }
 
@@ -76,6 +80,7 @@ const actions = {
         commit('SET_ACCOUNT', account)
         commit('SET_AVATAR', avatar)
         commit('SET_ROLE', role)
+
         resolve(data)
       }).catch(error => {
         reject(error)
@@ -92,6 +97,7 @@ const actions = {
           menus = doFilter(menus, filter);
         }
 
+        commit('SET_ROLE_TYPE', role.type)
         commit('SET_MENUS', menus)
         resolve(menus)
       }).catch(error => {

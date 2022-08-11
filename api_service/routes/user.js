@@ -21,7 +21,7 @@ router.get('/', httpResult.resp(async ctx => {
     let user = ctx.session.user;
     let query = ctx.query;
     if(query.roleType){
-        let role = await models.role.findOne({type : +query.roleType, club : query.club});
+        let role = await models.role.findOne({type : +query.roleType, club : query.club || user.club});
         delete query.roleType;
         query.role = role && role._id;
     }

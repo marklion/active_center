@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const {arrayToObject} = require("qs/lib/utils");
 
 const Schema = mongoose.Schema,
     ObjectId = Schema.ObjectId;
@@ -6,6 +7,10 @@ const Schema = mongoose.Schema,
 let activeSchema = new Schema({
     name            : {type : String, required: true, unique : true},       //活动名称
     club            : {type : ObjectId, required: true, ref : 'club'},
+    template_copy   : {
+
+    },
+    involved_leader : [{type : ObjectId, ref : 'user'}],
     bet_start_time  : {type : Date, required: true},
     bet_end_time    : {type : Date, required: true},
     start_time      : {type : Date, required: true},

@@ -22,7 +22,7 @@
         <el-table-column prop="club.name" label="俱乐部" align="center">
         </el-table-column>
         <el-table-column prop="create_time" label="创建时间" align="center">
-          <template slot-scope="scope">
+          <template v-slot="scope">
             {{ scope.row.create_time | formatTime }}
           </template>
         </el-table-column>
