@@ -36,6 +36,17 @@ adminUserSchema.pre('save', function(next){
     user.pwd = hash;
     next();
 });
+adminUserSchema.pre("insertMany", (next, docs) => {
+    for(let user of docs){
+        // only hash the password if it has been modified (or is new)
+        if (!user.pwd) return next();
+        // generate a salt
+        let salt = bcrypt.genSaltSync(SALT_WORK_FACTOR);
+        let hash = bcrypt.hashSync(user.pwd, salt);
+        user.pwd = hash;
+    }
+    next();
+})
 
 adminUserSchema.methods.comparePassword = function(candidatePassword) {
     let isMatch = bcrypt.compareSync(candidatePassword, this.pwd);

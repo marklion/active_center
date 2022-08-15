@@ -161,8 +161,18 @@
 </script>
 
 <style scoped>
- .form-card{
-   margin-top: 20px;
-   width: 40%;
- }
+@media screen and (max-width: 800px){
+  .form-card{
+    margin-top: 20px;
+    width: 100%;
+  }
+}
+
+@media screen and (min-width: 800px){
+  .form-card{
+    margin-top: 20px;
+    width: 40%;
+  }
+}
+
 </style>
