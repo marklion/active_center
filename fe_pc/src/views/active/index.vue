@@ -6,6 +6,10 @@
       @click_reset="getDataList"
       @click_search="handleSearch"></tableToolBar>
 
+    <el-card style="margin-top:20px;">
+      <div slot="header" class="clearfix">
+        <span>赛事列表</span>
+      </div>
     <el-table :data="activeList" style="width: 100%" height="600">
       <el-table-column fixed prop="name" label="比赛名称"></el-table-column>
       <el-table-column prop="template_copy.name" label="关联模板"></el-table-column>
@@ -45,6 +49,7 @@
         </template>
       </el-table-column>
     </el-table>
+    </el-card>
 
   </div>
 </template>

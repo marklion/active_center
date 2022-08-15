@@ -194,6 +194,21 @@ export const asyncRoutes = [
         meta: { title: 'Tree', icon: 'tree', key:'tree' }
       }
     ]
+  },{
+    path: '/registration',
+    component: Layout,
+    children: [{
+      path: 'index',
+      name: 'registration',
+      component: () => import('@/views/registration/index'),
+      meta: { title: '赛事报名', icon: 'el-icon-s-claim', key: 'registration-index'}
+    },{
+      path: 'edit',
+      name: 'registrationEdit',
+      component: () => import('@/views/registration/edit'),
+      meta: { title: '报名表', icon: 'el-icon-s-claim', key: 'registration-edit'},
+      hidden: true
+    }]
   }
 ]
 

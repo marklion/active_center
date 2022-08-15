@@ -19,7 +19,7 @@ async function createDefaultRolesInClub(clubId){
         name : '玩家',
         type : constant.ROLE_TYPE.PLAYER,
         club : clubId,
-        menus : [],
+        menus : ['registration-index','registration-edit'],
         editable : false,
         create_time : new Date(),
     });
