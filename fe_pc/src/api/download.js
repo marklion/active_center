@@ -4,6 +4,7 @@ export function downloadTemplate(params) {
   return request({
     url: '/api/v1/download/template',
     method: 'get',
-    params
+    params,
+    responseType: 'blob'
   })
 }
