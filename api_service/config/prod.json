@@ -1,6 +1,6 @@
 {
   "basePath" : "/api",
-  "port" : 8080,
+  "port" : 7777,
   "db" : {
     "mongo" : {
       "url" : "mongodb://name:password@host:port/db_name?authSource=xxx"
