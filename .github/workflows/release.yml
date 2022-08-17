@@ -18,7 +18,7 @@ jobs:
       - name: Build
         run: ./build.sh
       - name: deploy file
-        uses: bunyod545/SB.SftpDeployAction@v1.7
+        uses: bunyod545/SB.SftpDeployAction@v1.0
         with:
           username: 'root'
           server: '59.110.64.232'
