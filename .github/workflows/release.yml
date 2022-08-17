@@ -27,7 +27,7 @@ jobs:
           scp_source: ac_pack*.tar.gz
           scp_target: /root/active_center/
       - name: start_server
-        uses: D3rHase/ssh-command-action@{version}
+        uses: D3rHase/ssh-command-action@v0.2.1
         with:
           HOST: 59.110.64.232                            # Remote server address / ip - Required: true
           PORT: 22                          # Remote server port -  Default: 22 - Required: false
