@@ -16,6 +16,13 @@ export function getList(query){
   });
 }
 
+export function getById(id){
+  return request({
+    url: '/api/rest/active/' + id,
+    method : 'get'
+  });
+}
+
 export function remove(id){
   return request({
     url: '/api/rest/active/' + id,

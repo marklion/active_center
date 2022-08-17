@@ -26,7 +26,8 @@ const mongoOptions = {
   useCreateIndex : true
 };
 
-mongoose.connect(process.env.MONGO_URL, mongoOptions);
+// mongoose.connect(process.env.MONGO_URL, mongoOptions);
+mongoose.connect(config.db.mongo.url, mongoOptions);
 mongoose.Promise = bluebird;
 mongoose.set('useFindAndModify', false);
 const mongodb = mongoose.connection;

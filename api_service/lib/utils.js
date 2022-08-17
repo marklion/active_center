@@ -222,6 +222,10 @@ module.exports = {
         return _.padStart((Math.random() * Math.pow(10, length)).toFixed(0), length, '0');
     },
 
+    timeStr_random6 : function(){
+        return new Date().getTime() + '_' + this.randomStr(6);
+    },
+
     /**
      * 计算签名字符串, 默认大写32位MD5
      * 签名算法: key值按照字典排序呢, 然后拼接成queryString, 在最后拼上&key=secret, 加密
