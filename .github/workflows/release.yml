@@ -1,0 +1,24 @@
+name: release
+on:
+  push:
+    tags:
+      - "V*.*.*"
+
+jobs:
+  deploy_job:
+    runs-on: ubuntu-latest
+    name: deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build
+        run: ./build.sh
+      - name: deploy file
+        uses: bunyod545/SB.SftpDeployAction@v1.7
+        with:
+          username: 'root'
+          server: '59.110.64.232'
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }} 
+          local_path: './ac_pack*.tar.gz'
+          remote_path: '/root/active_center/'
+          args: '-o ConnectTimeout=5'
