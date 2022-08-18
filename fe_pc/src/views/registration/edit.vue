@@ -1,20 +1,21 @@
 <template>
   <div class="app-container">
     <el-row>
-      <el-page-header class="edit-header-bar" @back="goBack" :content=title />
+      <el-page-header class="edit-header-bar" @back="goBack" :content=getActiveSum() :title="title"/>
     </el-row>
     <el-row>
       <el-tabs type="border-card">
         <el-tab-pane v-for="(item) of activeItems" :label="item" :key="item">
+          <el-alert
+            :title="'小计：￥'+ getItemSum(item)"
+            type="success"
+            :closable="false">
+          </el-alert>
           <el-card class="box-card" v-for="(bet) of activeItemMap[item]">
             <div slot="header" class="clearfix">
-              <span>{{ bet.bet_value }}
-                | 小计：￥
-                {{bet.bet_value * (activeItemPlayersMap[bet._id] ? activeItemPlayersMap[bet._id].length : 0)}}
-              </span>
+              <span>{{ bet.bet_value }}</span>
               <el-button style="float: right; padding: 3px 0" type="text" @click="showToySelect(bet)">添加</el-button>
             </div>
-
             <div v-for="(group) of activeItemPlayersMap[bet._id]" :key="group[0]._id" class="text item">
               <el-tag closable @close="onRemoveRecord(bet._id, group)">
                 {{getGroupDisplay(group)}}
@@ -70,7 +71,6 @@ export default {
 
       toyList : null,
       toySelectVisible: false,
-
       editingItem: {toy_limit : 0},
 
       form : {
@@ -120,6 +120,21 @@ export default {
     getTitleDisplay(){
       return this.active ? this.active.name : ''
     },
+    getItemSum(itemName){
+      let items = this.activeItemMap[itemName];
+      let result = _.reduce(items, (sum, item) => {
+        let records = this.activeItemPlayersMap[item._id];
+        return sum + (records ? records.length * item.bet_value : 0);
+      }, 0)
+      return result
+    },
+    getActiveSum(){
+      let sum = _.reduce(this.activeItems, (sum, itemName) => {
+        return sum + this.getItemSum(itemName)
+      }, 0)
+      return '总计：￥' + sum
+    },
+
     async showToySelect(activeItem){
       const loading = this.$loading({
         lock: true,

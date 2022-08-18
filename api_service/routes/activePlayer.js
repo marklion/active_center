@@ -21,6 +21,7 @@ router.post('/', httpResult.resp(async ctx => {
     ctx.assert(data.toys, 'missing field : toys');
     ctx.assert(data.toys.length === activeItem.toy_limit, `toy limit error: you should submit ${activeItem.toy_limit} but ${data.toys.length}`);
 
+    let group_id = utils.timeStr_random6();
     for(let toyId of data.toys){
         let toy = await models.toy.findOne({_id: toyId});
         await models.activePlayer.create({
@@ -30,7 +31,7 @@ router.post('/', httpResult.resp(async ctx => {
             club: toy.club,
             active : activeItem.active,
             item: activeItem._id,
-            group_id : utils.timeStr_random6(),
+            group_id : group_id,
             creator : user._id,
             create_time : new Date()
         });
