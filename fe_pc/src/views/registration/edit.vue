@@ -71,7 +71,6 @@ export default {
 
       toyList : null,
       toySelectVisible: false,
-
       editingItem: {toy_limit : 0},
 
       form : {
@@ -135,6 +134,7 @@ export default {
       }, 0)
       return '总计：￥' + sum
     },
+
     async showToySelect(activeItem){
       const loading = this.$loading({
         lock: true,
