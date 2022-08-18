@@ -10,6 +10,7 @@ let itemSchema = new Schema({
     club: {type : ObjectId, required: true, ref: 'club'},
     active : {type : ObjectId, required: true, ref: 'active'},
     item:{type : ObjectId, required: true, ref: 'active_item'},
+    group_id: {type: String, default: ''},
     //     [{
     //     code : {type : String, required : true},
     //     name : {type : String},
