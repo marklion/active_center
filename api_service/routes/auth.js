@@ -33,7 +33,7 @@ router.post('/login', httpResult.resp(async ctx => {
     let err = '';
     log.info('login form : ' + clientIP);
     log.info(ctx.request.body);
-    let user = await models.user.findOne({account : name});
+    let user = await models.user.findOne({ account: name });
     if (!user) {
         err = "用户名不存在";
     } else if (!user.comparePassword(pwd)) {
@@ -56,6 +56,104 @@ router.post('/login', httpResult.resp(async ctx => {
         ctx.session.user = user;
         return user;
     }
+}));
+
+
+function get_token() {
+    const Core = require('@alicloud/pop-core');
+
+    var client = new Core({
+        accessKeyId: process.env.ALI_KEY_ID,
+        accessKeySecret: process.env.ALI_KEY_SECRET,
+        // securityToken: '<your-sts-token>', // use STS Token
+        endpoint: 'https://dypnsapi.aliyuncs.com',
+        apiVersion: '2017-05-25'
+    });
+
+    var params = {
+        "Url": "https://active.d8sis.cn/",
+        "Origin": "https://active.d8sis.cn"
+    }
+
+    var requestOption = {
+        method: 'POST',
+        formatParams: false,
+
+    };
+
+    return new Promise(function (resolve, reject) {
+        console.log(client);
+        client.request('GetAuthToken', params, requestOption).then((result) => {
+            resolve(result.TokenInfo);
+        }).catch((err) => {
+            console.log(err);
+            reject(err);
+        });
+    });
+
+}
+
+router.get('/get_token', httpResult.resp(async ctx => {
+    var ret = { j_token: '', a_token: '', ok: false };
+    try {
+        var token_info = await get_token();
+        console.log(token_info);
+        ret.j_token = token_info.JwtToken;
+        ret.a_token = token_info.AccessToken;
+        ret.ok = true;
+    } catch (error) {
+        console.log('failed to get token');
+        console.log(error);
+    }
+    return ret;
+}));
+
+router.post('/phone_auth', httpResult.resp(async ctx => {
+    const Core = require('@alicloud/pop-core');
+
+    var client = new Core({
+        accessKeyId: process.env.ALI_KEY_ID,
+        accessKeySecret: process.env.ALI_KEY_SECRET,
+        // securityToken: '<your-sts-token>', // use STS Token
+        endpoint: 'https://dypnsapi.aliyuncs.com',
+        apiVersion: '2017-05-25'
+    });
+
+    var params = {
+        "PhoneNumber": ctx.request.body.phone,
+        "SpToken": ctx.request.body.token
+    }
+
+    var requestOption = {
+        method: 'POST',
+        formatParams: false,
+    };
+
+    var user_phone = '';
+    try {
+        var call_ret = await client.request('VerifyPhoneWithToken', params, requestOption);
+        if (call_ret.Code == 'OK' && call_ret.GateVerify.VerifyResult == 'PASS') {
+            user_phone = ctx.request.body.phone;
+        }
+    } catch (error) {
+        console.log("failed to verify phone");
+        console.log(error);
+    }
+
+    if (user_phone) {
+        let user = await models.user.findOne({ mobile: user_phone })
+        if (user) {
+            ctx.session.user = user;
+            return user;
+        }
+        else {
+            throw ("用户未注册");
+        }
+    }
+    else {
+        throw ("手机号验证失败，请使用本机手机号登录");
+    }
+
 }));
 
 /**
