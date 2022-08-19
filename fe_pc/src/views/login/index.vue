@@ -69,7 +69,7 @@ export default {
             activeName: '0',
             loginForm: {
                 username: 'zcadmin',
-                password: 'zcadmin',
+                password: '',
                 phone: '',
             },
             loginRules: {
