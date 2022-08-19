@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@amap/amap-vue": "^2.0.13",
+    "aliyun_numberauthsdk_web": "^1.1.3",
     "axios": "0.24.0",
     "core-js": "3.6.5",
     "e-icon-picker": "^1.1.6",
@@ -25,10 +26,10 @@
     "normalize.css": "7.0.0",
     "nprogress": "0.2.0",
     "path-to-regexp": "2.4.0",
+    "qs": "latest",
     "vue": "2.6.14",
     "vue-router": "3.0.6",
-    "vuex": "3.1.0",
-    "qs": "latest"
+    "vuex": "3.1.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "4.4.4",
