@@ -1,44 +1,36 @@
 <template>
   <div class="app-container">
     <el-row>
-      <el-page-header class="edit-header-bar" @back="goBack" :content=getActiveSum() :title="title"/>
+      <el-page-header class="edit-header-bar" @back="goBack" :content=getTitleDisplay() />
     </el-row>
     <el-row>
-      <el-form v-if="roleType !== 3">
-        <el-form-item label="筛选玩家" label-width="80px">
-          <el-select v-model="player" placeholder="请选择待选玩家">
-            <el-option value="" label=" - 全部 - "></el-option>
-            <el-option
-              v-for="item in toyPlayers"
-              :key="item._id"
-              :label="item.name"
-              :value="item._id">
-            </el-option>
-          </el-select>
+      <el-card class="box-card">
+        <el-table :data="activeItems" stripe style="width: 100%" @filter-change="onFilterChange">
+          <el-table-column type="index" label="#" align="center">
+          </el-table-column>
+          <el-table-column
+            prop="name" label="项目" align="center"
+            :filters="activeItemsName.map(name => {return {text: name, value: name}})"
+            :filter-method="filterHandler">
+          </el-table-column>
+          <el-table-column prop="bet_value" label="金额" align="center">
+          </el-table-column>
+          <el-table-column
+            prop="ring_no" label="环号" align="center"
+            :filters="toyList.map(toy => {return {text: toy.ring_no, value: toy._id}})"
+            :filter-method="filterHandler">
+            <template v-slot="scope">
+              <div v-for="(group) of activeItemPlayersMap[scope.row._id]" :key="group[0]._id" class="text item">
+                <el-tag @close="onRemoveRecord(scope.row._id, group)">
+                  {{getGroupDisplay(group)}}
+                </el-tag>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </el-card>
 
-        </el-form-item>
-      </el-form>
 
-      <el-tabs type="border-card">
-        <el-tab-pane v-for="(item) of activeItems" :label="item" :key="item">
-          <el-alert
-            :title="'小计：￥'+ getItemSum(item)"
-            type="success"
-            :closable="false">
-          </el-alert>
-          <el-card class="box-card" v-for="(bet) of activeItemMap[item]">
-            <div slot="header" class="clearfix">
-              <span>{{ bet.bet_value }}</span>
-              <el-button style="float: right; padding: 3px 0" type="text" @click="showToySelect(bet)">添加</el-button>
-            </div>
-            <div v-for="(group) of filterActiveItemPlayersMap[bet._id]" :key="group[0]._id" class="text item">
-              <el-tag closable @close="onRemoveRecord(bet._id, group)">
-                {{getGroupDisplay(group)}}
-              </el-tag>
-            </div>
-          </el-card>
-        </el-tab-pane>
-      </el-tabs>
     </el-row>
 
 
@@ -52,7 +44,7 @@
             v-model="form.checkedToys"
             :min="1"
             :max="editingItem && editingItem.toy_limit">
-            <el-checkbox v-for="toy in filterToyList" :label="toy._id" :key="toy._id">{{toy.ring_no}}</el-checkbox>
+            <el-checkbox v-for="toy in toyList" :label="toy._id" :key="toy._id">{{toy.ring_no}}</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
       </el-form>
@@ -71,18 +63,16 @@ import {getActiveItemById} from '@/api/activeItem'
 import {getList as getToyList} from '@/api/toy'
 import {save as saveActivePlayer, getList as getActivePlayerList, remove as removePlayer} from '@/api/activePlayer'
 import * as _ from 'lodash'
-import {mapGetters} from "vuex";
 
 export default {
 
   data() {
     return {
-      player : '',
-
       title : '',
       activeId: '',
       active: null,
       activeItems : [],
+      activeItemsName : [],
       activeItemMap: {},
       activeItemPlayers: [],
       activeItemPlayersMap: {},
@@ -103,6 +93,7 @@ export default {
       toysValidator : function(){
         let _this = this;
         return function(rule, value, cb){
+          console.log(123123)
             if(value.length === _this.editingItem.toy_limit){
               cb();
             }else{
@@ -124,7 +115,7 @@ export default {
         vm.activeItems = res;
         let map = _.groupBy(res, 'name')
         vm.activeItemMap = map;
-        vm.activeItems = _.keys(map);
+        vm.activeItemsName = _.keys(map);
       });
       vm.reloadActivePlayers();
     })
@@ -132,12 +123,10 @@ export default {
   async created(){
     await this.loadToys();
   },
+
   methods: {
     goBack(){
       this.$router.push({ path: '/registration/index' })
-    },
-    async loadToys(){
-      this.toyList = await getToyList();
     },
     getTitleDisplay(){
       return this.active ? this.active.name : ''
@@ -145,7 +134,7 @@ export default {
     getItemSum(itemName){
       let items = this.activeItemMap[itemName];
       let result = _.reduce(items, (sum, item) => {
-        let records = this.filterActiveItemPlayersMap[item._id];
+        let records = this.activeItemPlayersMap[item._id];
         return sum + (records ? records.length * item.bet_value : 0);
       }, 0)
       return result
@@ -154,22 +143,10 @@ export default {
       let sum = _.reduce(this.activeItems, (sum, itemName) => {
         return sum + this.getItemSum(itemName)
       }, 0)
-      return '总计：￥' + sum
+      return '明细：￥' + sum
     },
-
-    async showToySelect(activeItem){
-      const loading = this.$loading({
-        lock: true,
-        text: '数据加载中',
-        spinner: 'el-icon-loading',
-        background: 'rgba(0, 0, 0, 0.7)'
-      });
-      this.editingItem = activeItem;
-      if(this.toyList === null){
-        this.toyList = await getToyList();
-      }
-      this.toySelectVisible = true;
-      loading.close();
+    async loadToys(){
+      this.toyList = await getToyList();
     },
     onResetForm(){
       this.form.checkedToys = [];
@@ -208,7 +185,18 @@ export default {
       })
     },
     async reloadActivePlayers(){
+      this.activeItemPlayersMap = {}
       this.activeItemPlayers = await getActivePlayerList({active: this.activeId});
+      let groups = _.groupBy(this.activeItemPlayers, 'group_id');
+      for(let group of _.values(groups)){
+        let key = group[0].item;
+        if(!this.activeItemPlayersMap[key]){
+          this.$set(this.activeItemPlayersMap, key, [])
+        }
+        this.activeItemPlayersMap[key].push(group)
+      }
+      await this.$nextTick()
+      // this.activeItemPlayersMap = _.groupBy(this.activeItemPlayers, 'item');
     },
     getGroupDisplay(group){
       return _.map(group, 'toy.ring_no').join(' - ')
@@ -229,37 +217,23 @@ export default {
           message: '删除成功!'
         })
       }catch(err){}
+    },
+    onFilterChange(filters){
+      console.log('fileters = ', filters)
+    },
+    filterHandler(value, row, column) {
+      console.log(value, row, column)
+      const property = column['property'];
+      if(property === 'ring_no'){
+        let group = this.activeItemPlayersMap[row._id];
+        return group && _.find(_.flattenDeep(group), o => o.toy._id === value)
+      }else{
+        return row[property] === value;
+      }
     }
   },
   computed: {
-    ...mapGetters([
-      'account',
-      'name',
-      'id',
-      'roleType'
-    ]),
-    toyPlayers(){
-      return  _.uniqBy(_.map(this.toyList, 'player'), '_id');
-    },
-    filterToyList(){
-      return this.player ? _.filter(this.toyList, o => { return o.player._id === this.player }) : this.toyList;
-    },
-    filterActiveItemPlayersMap(){
-      let activeItemPlayersMap = {}
-      let records = this.activeItemPlayers;
-      if(this.player){
-        records = _.filter(this.activeItemPlayers, {player : this.player})
-      }
-      let groups = _.groupBy(records, 'group_id');
-      for(let group of _.values(groups)){
-        let key = group[0].item;
-        if(!activeItemPlayersMap[key]){
-          activeItemPlayersMap[key] = []
-        }
-        activeItemPlayersMap[key].push(group)
-      }
-      return activeItemPlayersMap;
-    }
+
   }
 
 }
