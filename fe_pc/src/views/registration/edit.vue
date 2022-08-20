@@ -4,6 +4,21 @@
       <el-page-header class="edit-header-bar" @back="goBack" :content=getActiveSum() :title="title"/>
     </el-row>
     <el-row>
+      <el-form v-if="roleType !== 3">
+        <el-form-item label="筛选玩家" label-width="80px">
+          <el-select v-model="player" placeholder="请选择待选玩家">
+            <el-option value="" label=" - 全部 - "></el-option>
+            <el-option
+              v-for="item in toyPlayers"
+              :key="item._id"
+              :label="item.name"
+              :value="item._id">
+            </el-option>
+          </el-select>
+
+        </el-form-item>
+      </el-form>
+
       <el-tabs type="border-card">
         <el-tab-pane v-for="(item) of activeItems" :label="item" :key="item">
           <el-alert
@@ -16,7 +31,7 @@
               <span>{{ bet.bet_value }}</span>
               <el-button style="float: right; padding: 3px 0" type="text" @click="showToySelect(bet)">添加</el-button>
             </div>
-            <div v-for="(group) of activeItemPlayersMap[bet._id]" :key="group[0]._id" class="text item">
+            <div v-for="(group) of filterActiveItemPlayersMap[bet._id]" :key="group[0]._id" class="text item">
               <el-tag closable @close="onRemoveRecord(bet._id, group)">
                 {{getGroupDisplay(group)}}
               </el-tag>
@@ -37,7 +52,7 @@
             v-model="form.checkedToys"
             :min="1"
             :max="editingItem && editingItem.toy_limit">
-            <el-checkbox v-for="toy in toyList" :label="toy._id" :key="toy._id">{{toy.ring_no}}</el-checkbox>
+            <el-checkbox v-for="toy in filterToyList" :label="toy._id" :key="toy._id">{{toy.ring_no}}</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
       </el-form>
@@ -56,11 +71,14 @@ import {getActiveItemById} from '@/api/activeItem'
 import {getList as getToyList} from '@/api/toy'
 import {save as saveActivePlayer, getList as getActivePlayerList, remove as removePlayer} from '@/api/activePlayer'
 import * as _ from 'lodash'
+import {mapGetters} from "vuex";
 
 export default {
 
   data() {
     return {
+      player : '',
+
       title : '',
       activeId: '',
       active: null,
@@ -69,7 +87,7 @@ export default {
       activeItemPlayers: [],
       activeItemPlayersMap: {},
 
-      toyList : null,
+      toyList : [],
       toySelectVisible: false,
       editingItem: {toy_limit : 0},
 
@@ -85,7 +103,6 @@ export default {
       toysValidator : function(){
         let _this = this;
         return function(rule, value, cb){
-          console.log(123123)
             if(value.length === _this.editingItem.toy_limit){
               cb();
             }else{
@@ -112,10 +129,15 @@ export default {
       vm.reloadActivePlayers();
     })
   },
-
+  async created(){
+    await this.loadToys();
+  },
   methods: {
     goBack(){
       this.$router.push({ path: '/registration/index' })
+    },
+    async loadToys(){
+      this.toyList = await getToyList();
     },
     getTitleDisplay(){
       return this.active ? this.active.name : ''
@@ -123,7 +145,7 @@ export default {
     getItemSum(itemName){
       let items = this.activeItemMap[itemName];
       let result = _.reduce(items, (sum, item) => {
-        let records = this.activeItemPlayersMap[item._id];
+        let records = this.filterActiveItemPlayersMap[item._id];
         return sum + (records ? records.length * item.bet_value : 0);
       }, 0)
       return result
@@ -186,18 +208,7 @@ export default {
       })
     },
     async reloadActivePlayers(){
-      this.activeItemPlayersMap = {}
       this.activeItemPlayers = await getActivePlayerList({active: this.activeId});
-      let groups = _.groupBy(this.activeItemPlayers, 'group_id');
-      for(let group of _.values(groups)){
-        let key = group[0].item;
-        if(!this.activeItemPlayersMap[key]){
-          this.$set(this.activeItemPlayersMap, key, [])
-        }
-        this.activeItemPlayersMap[key].push(group)
-      }
-      await this.$nextTick()
-      // this.activeItemPlayersMap = _.groupBy(this.activeItemPlayers, 'item');
     },
     getGroupDisplay(group){
       return _.map(group, 'toy.ring_no').join(' - ')
@@ -221,7 +232,34 @@ export default {
     }
   },
   computed: {
-
+    ...mapGetters([
+      'account',
+      'name',
+      'id',
+      'roleType'
+    ]),
+    toyPlayers(){
+      return  _.uniqBy(_.map(this.toyList, 'player'), '_id');
+    },
+    filterToyList(){
+      return this.player ? _.filter(this.toyList, o => { return o.player._id === this.player }) : this.toyList;
+    },
+    filterActiveItemPlayersMap(){
+      let activeItemPlayersMap = {}
+      let records = this.activeItemPlayers;
+      if(this.player){
+        records = _.filter(this.activeItemPlayers, {player : this.player})
+      }
+      let groups = _.groupBy(records, 'group_id');
+      for(let group of _.values(groups)){
+        let key = group[0].item;
+        if(!activeItemPlayersMap[key]){
+          activeItemPlayersMap[key] = []
+        }
+        activeItemPlayersMap[key].push(group)
+      }
+      return activeItemPlayersMap;
+    }
   }
 
 }
