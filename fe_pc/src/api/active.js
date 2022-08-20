@@ -29,3 +29,11 @@ export function remove(id){
     method : 'delete'
   });
 }
+
+export function update(id, data){
+  return request({
+    url: '/api/rest/active/' + id,
+    method : 'put',
+    data
+  })
+}

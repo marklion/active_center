@@ -17,6 +17,9 @@ router.post('/', httpResult.resp(async ctx => {
     ctx.assert(data.item, 'missing field : item');
     let activeItem = await models.activeItem.findOne({_id : data.item});
     ctx.assert(activeItem, 'active item error: not exist');
+    let active = await models.active.findOne({_id: activeItem.active});
+    ctx.assert(active, 'system error: active not exist');
+    ctx.assert(active.canJoin(data), 'active is not available');
 
     ctx.assert(data.toys, 'missing field : toys');
     ctx.assert(data.toys.length === activeItem.toy_limit, `toy limit error: you should submit ${activeItem.toy_limit} but ${data.toys.length}`);

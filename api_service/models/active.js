@@ -20,6 +20,20 @@ let activeSchema = new Schema({
     update_time     : {type : Date, default: Date.now}
 });
 
+activeSchema.methods.canJoin = function(activePlayer) {
+    if(this.status > 0){
+        return false;
+    }
+    let now = new Date();
+    if(now < this.bet_start_time || now > this.bet_end_time){
+        return false;
+    }
+    if(!activePlayer || !this.involved_leader.includes(activePlayer.leader)){
+        return false;
+    }
+    return true;
+};
+
 let model = mongoose.model('active', activeSchema);
 
 module.exports = model;
