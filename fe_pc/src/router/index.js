@@ -208,6 +208,12 @@ export const asyncRoutes = [
       component: () => import('@/views/registration/edit'),
       meta: { title: '报名表', icon: 'el-icon-s-claim', key: 'registration-edit'},
       hidden: true
+    },{
+      path: 'stat',
+      name: 'registrationStat',
+      component: () => import('@/views/registration/stat'),
+      meta: { title: '参赛明细', icon: 'el-icon-s-claim', key: 'registration-stat'},
+      hidden: true
     }]
   }
 ]

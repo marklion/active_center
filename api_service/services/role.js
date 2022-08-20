@@ -3,7 +3,14 @@ async function createDefaultRolesInClub(clubId){
         name : '管理员',
         type : constant.ROLE_TYPE.MANAGER,
         club : clubId,
-        menus : ['account','account-edit','role','role-edit','toy','template','template-edit','active','active-edit'],
+        menus : [
+            'account','account-edit',
+            'role','role-edit',
+            'toy',
+            'template','template-edit',
+            'active','active-edit',
+            'registration-index','registration-edit','registration-stat'
+        ],
         editable : false,
         create_time : new Date(),
     });
@@ -11,7 +18,7 @@ async function createDefaultRolesInClub(clubId){
         name : '团长',
         type : constant.ROLE_TYPE.LEADER,
         club : clubId,
-        menus : [],
+        menus : ['registration-index','registration-edit','registration-stat'],
         editable : false,
         create_time : new Date(),
     });
@@ -19,11 +26,10 @@ async function createDefaultRolesInClub(clubId){
         name : '玩家',
         type : constant.ROLE_TYPE.PLAYER,
         club : clubId,
-        menus : ['registration-index','registration-edit'],
+        menus : ['registration-index','registration-edit','registration-stat'],
         editable : false,
         create_time : new Date(),
     });
-    return;
 }
 
 module.exports = {

@@ -42,6 +42,11 @@
               type="text">
               报名
             </el-button>
+            <el-button
+              @click.native.prevent="goStatView(scope.row._id)"
+              type="text">
+              参赛明细
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -87,6 +92,13 @@
       goRegistView(id){
         if (id !== undefined) {
           this.$router.push({path: '/registration/edit', query: {id}});
+        } else {
+          this.$message("比赛数据异常")
+        }
+      },
+      goStatView(id){
+        if (id !== undefined) {
+          this.$router.push({path: '/registration/stat', query: {id}});
         } else {
           this.$message("比赛数据异常")
         }
