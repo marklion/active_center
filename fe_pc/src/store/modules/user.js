@@ -1,4 +1,4 @@
-import { login, logout, getInfo, phone_login } from '@/api/user'
+import { login, logout, getInfo, phone_login, send_sms_code,verify_login } from '@/api/user'
 import { getById } from '@/api/role'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import { resetRouter,asyncRoutes } from '@/router'
@@ -77,7 +77,33 @@ const actions = {
       })
     })
   },
+  verify_login({ commit }, opt) {
+    return new Promise((resolve, reject) => {
+      verify_login(opt.phone,opt.code).then(data => {
+        commit('SET_TOKEN', data._id)
+        commit('SET_ID', data._id)
+        setToken(data._id)
+        resolve()
+      }).catch(error => {
+        reject(error)
+      })
+    })
+  },
 
+  send_sms_code({ commit }, phone) {
+    return new Promise((resolve, reject) => {
+      send_sms_code(phone).then(resp => {
+        if (resp.ok) {
+          resolve();
+        }
+        else {
+          reject();
+        }
+      }).catch(error => {
+        reject();
+      });
+    });
+  },
   // get user info
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
@@ -100,12 +126,12 @@ const actions = {
     })
   },
 
-  getMenus({commit, state}){
+  getMenus({ commit, state }) {
     return new Promise((resolve, reject) => {
       getById(state.role).then(role => {
         let filter = role.menus;
         let menus = _.cloneDeep(asyncRoutes);//此处用这种方法深拷贝一下asyncRoutes，解决sidebar渲染问题
-        if(role.name !== 'root'){
+        if (role.name !== 'root') {
           menus = doFilter(menus, filter);
         }
 
@@ -119,7 +145,7 @@ const actions = {
   },
 
   // user logout
-  logout({ commit, state, dispatch}) {
+  logout({ commit, state, dispatch }) {
     return new Promise((resolve, reject) => {
       logout(state.token).then(() => {
         removeToken() // must remove  token  first
@@ -149,19 +175,19 @@ const actions = {
  * @param all
  * @return {Array|*}
  */
-function doFilter(list, all){
-  if(list.length === 0){
-    return[];
+function doFilter(list, all) {
+  if (list.length === 0) {
+    return [];
   }
   return list.filter(item => {
     //first valid children node permission,
-    if(item.children && item.children.length > 0){
+    if (item.children && item.children.length > 0) {
       item.children = doFilter(item.children, all);
     }
     //valid if this node is included
-    if(item.meta && all.includes(item.meta.key)){
+    if (item.meta && all.includes(item.meta.key)) {
       return true
-    }else{
+    } else {
       return item.children && item.children.length > 0
     }
   });

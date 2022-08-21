@@ -16,5 +16,6 @@ export MONGO_URL=${1:-'mongodb://127.0.0.1:27017/game'}
 export NODE_ENV=prod
 export ALI_KEY_ID=$2
 export ALI_KEY_SECRET=$3
+export SMS_SECRET=$4
 npm run pm2
 popd
