@@ -12,11 +12,34 @@
                     <span class="svg-container">
                         <svg-icon icon-class="phone" />
                     </span>
-                    <el-input ref="phone" v-model="loginForm.phone" placeholder="手机号" name="phone" type="text" tabindex="1" />
+                    <el-input ref="phone" v-model="loginForm.phone" placeholder="手机号" name="phone" type="tel" tabindex="1" />
                 </el-form-item>
                 <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="phone_login">登 录</el-button>
             </el-tab-pane>
-            <el-tab-pane label="密码登录" name="1">
+            <el-tab-pane label="验证码登录" name="1">
+                <el-form-item prop="phone">
+                    <span class="svg-container">
+                        <svg-icon icon-class="phone" />
+                    </span>
+                    <el-input ref="phone" v-model="loginForm.phone" placeholder="手机号" name="phone" type="tel" tabindex="1" />
+                </el-form-item>
+                <el-row type="flex" align="middle">
+                    <el-col :span="16">
+                        <el-form-item prop="verify_code">
+                            <span class="svg-container">
+                                <svg-icon icon-class="phone" />
+                            </span>
+                            <el-input ref="verify" v-model="loginForm.verify_code" placeholder="验证码" :maxlength="6" name="verify_code" type="text" tabindex="1">
+                            </el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-button type="warning" size="mini" :disabled="verify_disabled" @click="send_verify_code">发送验证码</el-button>
+                    </el-col>
+                </el-row>
+                <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="verify_login">登 录</el-button>
+            </el-tab-pane>
+            <el-tab-pane label="密码登录" name="2">
                 <el-form-item prop="username">
                     <span class="svg-container">
                         <svg-icon icon-class="user" />
@@ -66,11 +89,13 @@ export default {
             }
         }
         return {
+            verify_disabled: false,
             activeName: '0',
             loginForm: {
                 username: 'zcadmin',
                 password: '',
                 phone: '',
+                verify_code: ''
             },
             loginRules: {
                 username: [{
@@ -97,6 +122,32 @@ export default {
         }
     },
     methods: {
+        verify_login: function () {
+            this.loading = true
+            this.$store.dispatch('user/verify_login', {
+                phone: this.loginForm.phone,
+                code: this.loginForm.verify_code
+            }).then(() => {
+                this.$router.push({
+                    path: this.redirect || '/'
+                })
+                this.loading = false
+            }).catch((err) => {
+                this.$message(err);
+                this.loading = false
+            })
+        },
+        send_verify_code: function () {
+            this.$store.dispatch('user/send_sms_code', this.loginForm.phone).then(() => {
+                this.verify_disabled = true;
+                this.$message("短信发送成功");
+                setTimeout(() => {
+                    this.verify_disabled = false;
+                }, 60000);
+            }).catch(() => {
+                this.$message("短信发送失败")
+            });
+        },
         showPwd() {
             if (this.passwordType === 'password') {
                 this.passwordType = ''

@@ -124,13 +124,32 @@
         this.$refs.uploadFile.submit();
       },
       async importSuccHandler(resp) {
-        this.$message({
-          type: 'success',
-          message: `会员总数：${resp.data.total},
-        成功上传：${resp.data.success}`
-        })
+        if(resp.code === 200){
+          if( resp.data.message ){
+            this.$message({
+              showClose: true,
+              duration: 0,
+              type:'warning',
+              message: `上传成功，解析账号：${resp.data.total},
+                成功保存：${resp.data.success}。
+                ${resp.data.message || ''}`
+            })
+
+          }else{
+            this.$message({
+              type:'success',
+              message: `上传成功，解析账号：${resp.data.total},
+              成功保存：${resp.data.success}。`})
+          }
+        }else{
+          this.$message({
+            type: 'error',
+            message: resp.msg
+          })
+        }
+
         this.batchVisible = false;
-        this.getDataList();
+        await this.getDataList();
       },
       setPermissions() {
       },

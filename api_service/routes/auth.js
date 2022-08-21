@@ -156,6 +156,40 @@ router.post('/phone_auth', httpResult.resp(async ctx => {
 
 }));
 
+router.post('/send_verify_code', httpResult.resp(async (ctx) => {
+    var sms_helper = require('../lib/sms');
+    var utils = require('../lib/utils');
+    var verify_code = utils.randomStr(6);
+    var send_ret = await sms_helper.sendSMS({ mobile: ctx.request.body.phone, content: '您的验证码是：' + verify_code + ',验证码5分钟内有效' });
+    var resp = { ok: false };
+    if (send_ret) {
+        ctx.session.verify_code = verify_code;
+        ctx.session.verify_expiration = new Date().getTime() / 1000 + 300;
+        resp.ok = true;
+    }
+    return resp;
+}));
+
+
+router.post('/verify_login', httpResult.resp(async (ctx) => {
+    var input_code = ctx.request.body.code;
+    var stored_code = ctx.session.verify_code;
+    if (input_code == stored_code && ctx.session.verify_expiration > new Date().getTime() / 1000) {
+        ctx.session.verify_code = '';
+        let user = await models.user.findOne({ mobile: ctx.request.body.phone })
+        if (user) {
+            ctx.session.user = user;
+            return user;
+        }
+        else {
+            throw ("用户未注册");
+        }
+    }
+    else {
+        throw ("验证码输入错误,或已失效");
+    }
+}));
+
 /**
  * 获取登录用户信息
  */

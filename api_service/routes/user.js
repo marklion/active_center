@@ -43,13 +43,24 @@ router.post('/', httpResult.resp(async ctx => {
         privilege       : [],
     };
 
-    if(data._id){
-        await models.user.findOneAndUpdate({_id: data._id}, {$set : adminUser}, {new: true});
-    }else{
-        adminUser.creator = admin._id;
-        adminUser.create_time = Date.now();
-        await models.user.create(adminUser);
+    try{
+        if(data._id){
+            await models.user.findOneAndUpdate({_id: data._id}, {$set : adminUser}, {new: true});
+        }else{
+            adminUser.creator = admin._id;
+            adminUser.create_time = Date.now();
+            await models.user.create(adminUser);
+        }
+    }catch(err){
+        if(err.code === 11000){
+            if(err.keyValue.account){
+                throw new Error('账号已存在，请调整后再试')
+            }else if(err.keyValue.mobile){
+                throw new Error('手机号已被占用，请更换其他手机号');
+            }
+        }
     }
+
     await cacheService.refreshClubCache();
     return 'ok'
 }));
