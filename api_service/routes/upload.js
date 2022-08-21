@@ -109,7 +109,18 @@ router.post('/user', gridFs.single('file'), httpResult.resp(async ctx => {
         resp.success = resp.total;
     }catch(err){
         resp.success = err.insertedDocs.length;
-        resp.message = err.message
+        if(err.code === 11000){
+            let dupKeyStr = err.message.match(/dup key: (\{.*\})/);
+            let dupObj = eval("(" + dupKeyStr[1] + ")");
+            if(dupObj.account){
+                resp.message = `账号冲突，导致保存过程中断，请解决${dupObj.account}账号的冲突后再试`
+            }else{
+                resp.message = `手机号冲突，导致保存过程中断，请解决${dupObj.account}号码的冲突后再试`
+            }
+        }else{
+            resp.message = err.message
+        }
+
     }
     return resp;
 }));
