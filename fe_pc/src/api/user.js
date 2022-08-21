@@ -54,14 +54,14 @@ export function phone_login(_phone) {
               },
               error: function (res) {
                 console.log(res);
-                reject('请关闭wifi后再试');
+                reject('请关闭wifi后再试,或使用短信验证码登录');
               }
             });
 
           },
           error: function (res) {
             console.log(res);
-            reject(res);
+            reject('系统错误，请使用短信验证码登录');
           }
         });
       }
@@ -70,4 +70,20 @@ export function phone_login(_phone) {
       }
     }).catch(err => reject(err));
   });
+}
+
+export function send_sms_code(_phone) {
+  return request({
+    url: '/api/v1/auth/send_verify_code',
+    method: 'post',
+    data:{phone:_phone}
+  })
+}
+
+export function verify_login(_phone, _code) {
+  return request({
+    url: '/api/v1/auth/verify_login',
+    method: 'post',
+    data: { phone: _phone, code: _code }
+  })
 }
