@@ -51,11 +51,12 @@ let file = _.curryRight(async function (ctx, next, fn){
         // let mimeType = mime.lookup(fullPath);
 
         ctx.attachment(fileName);
-        // ctx.setHeader('Content-type', mimeType);
+        ctx.response.type = 'application/octet-stream';
 
         ctx.body = fs.createReadStream(fullPath);
     }catch(err){
         log.error(err);
+        ctx.response.type = 'application/json';
         ctx.body = logic_err(err.message || err);
     }
 });

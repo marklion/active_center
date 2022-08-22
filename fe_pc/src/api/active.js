@@ -8,11 +8,11 @@ export function create(data){
   })
 }
 
-export function getList(query){
+export function getList(params){
   return request({
     url: '/api/rest/active',
     method : 'get',
-    query
+    params
   });
 }
 

@@ -45,6 +45,9 @@
               </el-option>
             </el-select>
           </el-form-item>
+          <el-form-item label="备注" prop="comment">
+            <el-input v-model="form.comment"></el-input>
+          </el-form-item>
 
           <el-form-item>
             <el-button type="primary" @click="handleSave">保存</el-button>
@@ -77,6 +80,7 @@
           club : '',
           role : '',
           mobile : '',
+          comment : ''
         },
 
         rules : {

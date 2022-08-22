@@ -21,3 +21,12 @@ export function remove(id){
     method: 'delete',
   })
 }
+
+export function exportByActive(activeId){
+  return request({
+    url: '/api/v1/activePlayer/export',
+    method: 'get',
+    params : {active : activeId},
+    responseType: 'blob'
+  })
+}

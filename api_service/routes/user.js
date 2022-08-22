@@ -40,6 +40,7 @@ router.post('/', httpResult.resp(async ctx => {
         club            : data.club,
         role            : data.role,
         mobile          : data.mobile,
+        comment         : data.comment,
         privilege       : [],
     };
 
