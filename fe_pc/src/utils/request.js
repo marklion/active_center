@@ -10,7 +10,7 @@ const service = axios.create({
   // baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
   baseURL: '', // url = base url + request url
   withCredentials: true, // send cookies when cross-domain requests
-  timeout: 5000 // request timeout
+  timeout: 10000 // request timeout
 })
 
 // request interceptor
@@ -49,36 +49,29 @@ service.interceptors.response.use(
    * You can also judge the status by HTTP Status Code
    */
   response => {
+    console.log('response',response)
     if(response.headers['content-disposition']){
       //下载文件
       return convertRes2Blob(response);
     }
-    const res = response.data
+    let res = response.data;
+    if(response.config.responseType === 'blob'){
+      if(res.type === 'application/json'){
+        let reader = new FileReader()
+        reader.onload = function(event){
+          let content = reader.result;
+          res = JSON.parse(content);
+          return Promise.reject(errorHandle(res));
+        }
+        reader.readAsText(response.data)
+        return;
+      }
+    }
     console.log(response.config.method, response.config.url, res);
 
     // if the custom code is not 20000, it is judged as an error.
     if (res.code !== 200) {
-      Message({
-        message: res.msg || 'Error',
-        type: 'error',
-        duration: 5 * 1000
-      })
-
-      // 50008: Illegal token; 50012: Other clients logged in; 50014: Token expired;
-      // if (res.code === 50008 || res.code === 50012 || res.code === 50014) {
-      if (res.code === 503) {
-        // to re-login
-        MessageBox.confirm('账号未登录', '接口验证', {
-          confirmButtonText: '去登录',
-          cancelButtonText: '返回当前页',
-          type: 'warning'
-        }).then(() => {
-          store.dispatch('user/resetToken').then(() => {
-            location.reload()
-          })
-        })
-      }
-      return Promise.reject(new Error(res.message || 'Error'))
+      return Promise.reject(errorHandle(res));
     } else {
       return res.data
     }
@@ -93,5 +86,29 @@ service.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+function errorHandle(res){
+  Message({
+    message: res.msg || 'Error',
+    type: 'error',
+    duration: 5 * 1000
+  })
+
+  // 50008: Illegal token; 50012: Other clients logged in; 50014: Token expired;
+  // if (res.code === 50008 || res.code === 50012 || res.code === 50014) {
+  if (res.code === 503) {
+    // to re-login
+    MessageBox.confirm('账号未登录', '接口验证', {
+      confirmButtonText: '去登录',
+      cancelButtonText: '返回当前页',
+      type: 'warning'
+    }).then(() => {
+      store.dispatch('user/resetToken').then(() => {
+        location.reload()
+      })
+    })
+  }
+  return new Error(res.message || 'Error');
+}
 
 export default service
