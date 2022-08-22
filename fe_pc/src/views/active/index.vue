@@ -14,10 +14,7 @@
       <el-table-column fixed prop="name" label="比赛名称"></el-table-column>
       <el-table-column fixed prop="status" label="状态" min-width="40px">
         <template v-slot="scope">
-          <el-button size="mini" round
-                     :type="getActiveStatus(scope.row).type">
-            {{getActiveStatus(scope.row).text}}
-          </el-button>
+          <activeStatus :active="scope.row"></activeStatus>
         </template>
       </el-table-column>
       <el-table-column prop="template_copy.name" label="关联模板" min-width="40px"></el-table-column>
@@ -70,12 +67,13 @@
 
 <script>
   import tableToolBar from '@/components/TableToolBar'
+  import activeStatus from '@/components/ActiveStatus'
   import { getList,remove,update } from '@/api/active'
   import {exportByActive} from "@/api/activePlayer";
 
   export default {
     components:{
-      tableToolBar
+      tableToolBar,activeStatus
     },
     data() {
       return {
@@ -103,21 +101,6 @@
       },
       async getDataList(query){
         this.activeList = await getList(query)
-      },
-      getActiveStatus(active){
-        let result = {type : 'success', text: ''}
-        let now = new Date().toISOString();
-        if(active.status > 0){
-          result.type = 'danger'
-          result.text = '已停止'
-        }else if(now >= active.bet_start_time && now <= active.bet_end_time){
-          result.type = 'success'
-          result.text = '报名中'
-        }else{
-          result.type = 'danger'
-          result.text = '已截止'
-        }
-        return result;
       },
       handleSearch(){
         return []
