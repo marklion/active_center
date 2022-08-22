@@ -20,7 +20,7 @@ let activeSchema = new Schema({
     update_time     : {type : Date, default: Date.now}
 });
 
-activeSchema.methods.canJoin = function(activePlayer) {
+activeSchema.methods.canJoin = function(toys) {
     if(this.status > 0){
         return false;
     }
@@ -28,9 +28,15 @@ activeSchema.methods.canJoin = function(activePlayer) {
     if(now < this.bet_start_time || now > this.bet_end_time){
         return false;
     }
-    if(!activePlayer || !this.involved_leader.includes(activePlayer.leader)){
+    if(!toys || toys.length === 0){
         return false;
     }
+    for(let toy of toys){
+        if(!toy || !this.involved_leader.includes(toy.leader)){
+            return false;
+        }
+    }
+
     return true;
 };
 

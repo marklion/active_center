@@ -125,7 +125,7 @@
       },
       async importSuccHandler(resp) {
         if(resp.code === 200){
-          if( resp.data.message ){
+          if( resp.data.total !== resp.data.success){
             this.$message({
               showClose: true,
               duration: 0,
