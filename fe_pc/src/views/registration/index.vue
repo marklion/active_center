@@ -11,12 +11,7 @@
                  style="margin-top:20px;">
           <div slot="header" class="clearfix">
             <span>{{ active.name }}</span>
-            <el-button
-              style="float: right; padding: 6px"
-              size="mini" round
-              :type="getActiveStatus(active).type">
-              {{ getActiveStatus(active).text }}
-            </el-button>
+            <activeStatus :active="active" style="float: right; padding: 6px"></activeStatus>
           </div>
           <div>
             <el-descriptions title="比赛信息" :column="1">
@@ -43,13 +38,14 @@
 
 <script>
   import tableToolBar from '@/components/TableToolBar'
+  import activeStatus from '@/components/ActiveStatus'
   import {getList, remove} from "@/api/active";
 
   export default {
     name: 'registrationView',
 
     components: {
-      tableToolBar
+      tableToolBar,activeStatus
     },
 
     data() {
@@ -63,21 +59,6 @@
       await this.getDataList();
     },
     methods: {
-      getActiveStatus(active){
-        let result = {type : 'success', text: ''}
-        let now = new Date().toISOString();
-        if(active.status > 0){
-          result.type = 'danger'
-          result.text = '已停止'
-        }else if(now >= active.bet_start_time && now <= active.bet_end_time){
-          result.type = 'success'
-          result.text = '报名中'
-        }else{
-          result.type = 'danger'
-          result.text = '已截止'
-        }
-        return result;
-      },
       goRegistView(id){
         if (id !== undefined) {
           this.$router.push({path: '/registration/edit', query: {id}});

@@ -26,7 +26,17 @@ router.post('/', httpResult.resp(async ctx => {
     ctx.assert(activeData.involved_leader && activeData.involved_leader.length > 0, 'field missing: involved leader')
     // let involvedToys = await models.toy.find({leader : {$in : activeData.involved_leader}});
     // ctx.assert(involvedToys, 'system error: no toys match for this game');
-    let result = await models.active.create(activeData);
+    let result
+    try{
+        result = await models.active.create(activeData);
+    }catch (err){
+        if(err.code === 11000){
+            if(err.keyValue.name){
+                throw new Error('该比赛名称已被占用，请调整后再试')
+            }
+        }
+    }
+
     let activeItems = [];
     for (const item of templateObj.items) {
         for(const bet_value of item.bet_values){
