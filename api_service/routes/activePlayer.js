@@ -17,16 +17,16 @@ router.post('/', httpResult.resp(async ctx => {
     ctx.assert(data.item, 'missing field : item');
     let activeItem = await models.activeItem.findOne({_id : data.item});
     ctx.assert(activeItem, 'active item error: not exist');
-    let active = await models.active.findOne({_id: activeItem.active});
-    ctx.assert(active, 'system error: active not exist');
-    ctx.assert(active.canJoin(data), 'active is not available');
 
     ctx.assert(data.toys, 'missing field : toys');
     ctx.assert(data.toys.length === activeItem.toy_limit, `toy limit error: you should submit ${activeItem.toy_limit} but ${data.toys.length}`);
+    let toys = await models.toy.find({_id : {$in : data.toys}});
+    let active = await models.active.findOne({_id: activeItem.active});
+    ctx.assert(active, 'system error: active not exist');
+    ctx.assert(active.canJoin(toys), 'active is not available');
 
     let group_id = utils.timeStr_random6();
-    for(let toyId of data.toys){
-        let toy = await models.toy.findOne({_id: toyId});
+    for(let toy of toys){
         await models.activePlayer.create({
             toy: toy._id,
             player: toy.player,
@@ -86,19 +86,5 @@ router.get('/export', httpResult.file(async ctx => {
     await compressing.zip.compressDir(basePath, destFilePath);
     return destFilePath
 }))
-
-
-
-
-const content = '一些内容'
-
-async function t(){
-    fs.mkdirSync('./tmp/joe', { recursive: true })
-
-    fs.writeFileSync('./tmp/joe/test.txt', content)
-
-    let result = await compressing.zip.compressDir('./tmp/joe', './tmp/joe.zip')
-    console.log(result)
-}
 
 module.exports = router;
