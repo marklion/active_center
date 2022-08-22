@@ -54,6 +54,12 @@
             size="small">
             结束报名
           </el-button>
+          <el-button
+            @click.native.prevent="exportBet(scope.row)"
+            type="text"
+            size="small">
+            导出报名
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -65,6 +71,7 @@
 <script>
   import tableToolBar from '@/components/TableToolBar'
   import { getList,remove,update } from '@/api/active'
+  import {exportByActive} from "@/api/activePlayer";
 
   export default {
     components:{
@@ -132,6 +139,20 @@
       async stopBet(active){
         await update(active._id, {status : 1});
         await this.getDataList()
+      },
+      async exportBet(active){
+        const loading = this.$loading({
+          lock: true,
+          text: '数据生成中',
+          spinner: 'el-icon-loading',
+          background: 'rgba(0, 0, 0, 0.7)'
+        });
+        try{
+          await exportByActive(active._id);
+        }catch(err){
+        }finally {
+          loading.close();
+        }
       }
     }
   }

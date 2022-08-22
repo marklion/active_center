@@ -33,4 +33,4 @@ jobs:
           PORT: 22                          # Remote server port -  Default: 22 - Required: false
           USER: root                             # Remote server user - Required: true
           PRIVATE_SSH_KEY: ${{secrets.SSH_PRIVATE_KEY}}       # Private ssh key registered on the remote server - Required: true
-          COMMAND: pushd /root/active_center; tar xf ac_pack_$(date +%Y%m%d).tar.gz && ./deploy.sh 'mongodb://127.0.0.1:27017/game' ${{ secrets.ALI_KEY_ID }} ${{ secrets.ALI_KEY_SECRET }};popd
+          COMMAND: pushd /root/active_center; tar xf ac_pack_$(date +%Y%m%d).tar.gz && ./deploy.sh 'mongodb://127.0.0.1:27017/game' ${{ secrets.ALI_KEY_ID }} ${{ secrets.ALI_KEY_SECRET }} ${{ secrets.SMS_SECRET}};popd

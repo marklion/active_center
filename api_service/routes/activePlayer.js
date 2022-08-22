@@ -56,6 +56,49 @@ router.get('/', httpResult.resp(async ctx => {
     }
     let q = _.assign(query, {removed : 0}, appCache.getClubQueryCondition(user.club));
     return await models.activePlayer.find(q).populate('toy');
+}));
+
+const fs = require('fs')
+const compressing = require('compressing');
+router.get('/export', httpResult.file(async ctx => {
+    let user = ctx.session.user;
+    let query = ctx.query;
+    let active = await models.active.findOne({_id : query.active});
+    let items = await models.activeItem.find({active: query.active});
+    ctx.assert(items && items.length > 0, 'system error: no items exist in this active');
+    let data = await models.activePlayer.find({active: query.active}).populate('toy').populate('leader');
+    ctx.assert(data && data.length > 0, 'system error: no registration exist in this active');
+
+    let basePath = `${__dirname}/../public/download/${user.account}/${query.active}`
+    fs.mkdirSync(basePath, { recursive: true })
+    let activePlayerMap = _.groupBy(data, 'item');
+    for(let item of items){
+        let itemRecords = activePlayerMap[item._id];
+        let groups = _.groupBy(itemRecords, 'group_id');
+        let writeString = '';
+        for(let group of _.values(groups)){
+            let tmp = _.map(group, 'toy.ring_no');
+            writeString += `${group[0].leader.comment},${tmp.join('|')}\r\n`
+        }
+        fs.writeFileSync(basePath + '/' + item.code + item.bet_value + '.txt', writeString, {flag : 'w'})
+    }
+    let destFilePath = basePath + '/../' + active.name +  '.zip';
+    await compressing.zip.compressDir(basePath, destFilePath);
+    return destFilePath
 }))
+
+
+
+
+const content = '一些内容'
+
+async function t(){
+    fs.mkdirSync('./tmp/joe', { recursive: true })
+
+    fs.writeFileSync('./tmp/joe/test.txt', content)
+
+    let result = await compressing.zip.compressDir('./tmp/joe', './tmp/joe.zip')
+    console.log(result)
+}
 
 module.exports = router;

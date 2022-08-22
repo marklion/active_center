@@ -94,9 +94,10 @@ router.post('/user', gridFs.single('file'), httpResult.resp(async ctx => {
         let account = r['账号'] || mobile;
         let pwd = r['密码'] || mobile.substring(5);
         let name = r['账号名称'] || mobile;
+        let comment = r['备注']
 
         importList.push({
-            account, pwd, name, mobile,
+            account, pwd, name, mobile, comment,
             role : createRole._id,
             club : belongClub,
             creator : _id,
