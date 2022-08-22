@@ -49,7 +49,6 @@ service.interceptors.response.use(
    * You can also judge the status by HTTP Status Code
    */
   response => {
-    console.log('response',response)
     if(response.headers['content-disposition']){
       //下载文件
       return convertRes2Blob(response);
