@@ -57,9 +57,3 @@ adminUserSchema.methods.comparePassword = function(candidatePassword) {
 let model = mongoose.model('user', adminUserSchema);
 
 module.exports = model;
-
-
-
-
-
-

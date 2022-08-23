@@ -38,9 +38,9 @@
       </el-table>
     </el-card>
 
-    <el-dialog title="导入会员" :visible.sync="batchVisible">
+    <el-dialog title="导入会员" :visible.sync="batchVisible" custom-class="upload-dialog">
       <el-form>
-        <el-form-item label="会员文件" label-width="120px">
+        <el-form-item label="会员文件">
           <el-upload
             :auto-upload="false" ref="uploadFile"
             :on-success="importSuccHandler"
@@ -59,7 +59,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
 
-        <el-button @click="batchVisible = false">取 消</el-button>
+        <el-button @click="onCancelUpload">取 消</el-button>
         <el-button type="primary" @click="submitUserFile">确 定</el-button>
       </div>
     </el-dialog>
@@ -120,8 +120,14 @@
         downloadTemplate({name: 'userTmpl'});
       },
       async submitUserFile() {
-        //此处可以是先校验文件，然后再做插入。目前的策略是直接导入文件，然后返回结果
+        if(this.$refs.uploadFile.uploadFiles.length === 0){
+          return this.$message.error('请选择文件后再上传')
+        }
         this.$refs.uploadFile.submit();
+      },
+      onCancelUpload(){
+        this.$refs.uploadFile.clearFiles();
+        this.batchVisible = false
       },
       async importSuccHandler(resp) {
         if(resp.code === 200){
@@ -148,6 +154,7 @@
           })
         }
 
+        this.$refs.uploadFile.clearFiles();
         this.batchVisible = false;
         await this.getDataList();
       },
@@ -174,5 +181,4 @@
 </script>
 
 <style scoped>
-
 </style>
