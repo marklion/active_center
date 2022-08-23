@@ -120,7 +120,7 @@
 
     <el-dialog title="导入鸽子" :visible.sync="batchVisible">
       <el-form>
-        <el-form-item label="鸽子文件" :label-width="formLabelWidth">
+        <el-form-item label="鸽子文件">
           <el-upload
             :auto-upload="false" ref="uploadToy"
             :on-success="importSuccHandler"
@@ -139,7 +139,7 @@
       </el-form>
       <div slot="footer" class="dialog-footer">
 
-        <el-button @click="batchVisible = false">取 消</el-button>
+        <el-button @click="onCancelUpload">取 消</el-button>
         <el-button type="primary" @click="submitToyFile">确 定</el-button>
       </div>
     </el-dialog>
@@ -311,16 +311,41 @@
         }
       },
       async submitToyFile(){
-        //此处可以是先校验文件，然后再做插入。目前的策略是直接导入文件，然后返回结果
+        if(this.$refs.uploadToy.uploadFiles.length === 0){
+          return this.$message.error('请选择文件后再上传')
+        }
         this.$refs.uploadToy.submit();
       },
+      onCancelUpload(){
+        this.$refs.uploadToy.clearFiles();
+        this.batchVisible = false
+      },
       async importSuccHandler(resp){
-        this.$message({
-          type : 'success',
-          message : `号码总数：${resp.data.total},
+        if(resp.code === 200){
+          if( resp.data.total !== resp.data.success){
+            this.$message({
+              showClose: true,
+              duration: 0,
+              type:'warning',
+              message: `上传成功，解析数量：${resp.data.total},
+                成功保存：${resp.data.success}。
+                ${resp.data.message || ''}`
+            })
+          }else{
+            this.$message({
+              type : 'success',
+              message : `上传成功，解析数量：${resp.data.total},
         成功上传：${resp.data.success}`})
+          }
+        }else{
+          this.$message({
+            type: 'error',
+            message: resp.msg
+          })
+        }
+        this.$refs.uploadToy.clearFiles();
         this.batchVisible = false;
-        this.refreshView();
+        await this.refreshView();
       },
       cancelAddToy(){
         this.resetToyForm()

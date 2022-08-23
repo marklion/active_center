@@ -39,8 +39,20 @@ let resp = _.curryRight(async function (ctx, next, fn){
         let resultData = await fn(ctx);
         ctx.body = succ(resultData);
     }catch(err){
+        let message = '';
+        if(err.code === 11000){
+            if(err.keyValue.ring_no){
+                message = '环号已存在，请调整后再试'
+            }else if(err.keyValue.mobile){
+                message = '手机号已被占用，请更换其他手机号'
+            }else if(err.keyValue.account){
+                message = '账号已存在，请调整后再试'
+            }else if(err.keyValue.name){
+                message = '名称已存在，请调整后再试'
+            }
+        }
         log.error(err);
-        ctx.body = logic_err(err.message || err);
+        ctx.body = logic_err(message || err.message || err);
     }
 });
 

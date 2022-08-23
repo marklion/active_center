@@ -18,6 +18,8 @@ let toySchema = new Schema({
     update_time     : {type : Date, default: Date.now}
 });
 
+toySchema.index( {ring_no: 1, club:1,  removed: 1}, { unique: true } );
+
 let model = mongoose.model('toy', toySchema);
 
 module.exports = model;

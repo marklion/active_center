@@ -5,7 +5,7 @@ const Schema = mongoose.Schema,
     ObjectId = Schema.ObjectId;
 
 let activeSchema = new Schema({
-    name            : {type : String, required: true, unique : true},       //活动名称
+    name            : {type : String, required: true},       //活动名称
     club            : {type : ObjectId, required: true, ref : 'club'},
     template_copy   : {},
     involved_leader : [{type : ObjectId, ref : 'user'}],
@@ -40,6 +40,7 @@ activeSchema.methods.canJoin = function(toys) {
     return true;
 };
 
+activeSchema.index( {name: 1, club:1,  removed: 1}, { unique: true } );
 let model = mongoose.model('active', activeSchema);
 
 module.exports = model;

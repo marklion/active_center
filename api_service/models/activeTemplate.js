@@ -19,7 +19,7 @@ let activeSchema = new Schema({
     update_time     : {type : Date, default: Date.now}
 });
 
-activeSchema.index( { name: 1,  removed: 1}, { unique: true } );
+activeSchema.index( { name: 1, club:1, removed: 1}, { unique: true } );
 
 let model = mongoose.model('active_template', activeSchema);
 
