@@ -18,9 +18,12 @@
             </el-button-group>
           </div>
 
-          <el-table :data="toyList"
-                    @selection-change="handleSelectionChange"
-                    stripe style="width: 100%">
+          <el-table
+            v-loading="loading"
+            style="width: 100%"
+            stripe
+            :data="toyList"
+            @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="55"></el-table-column>
 
             <el-table-column prop="ring_no" label="环号" align="center"></el-table-column>
@@ -58,6 +61,17 @@
             </el-table-column>
           </el-table>
 
+          <div class="block">
+            <el-pagination
+              @size-change="loadToys"
+              @current-change="loadToys"
+              :current-page.sync="page.current"
+              :page-sizes="page.sizes"
+              :page-size.sync="page.size"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="page.total">
+            </el-pagination>
+          </div>
         </el-card>
       </el-col>
       <el-col :span="5">
@@ -175,6 +189,7 @@
   import * as userApi from '@/api/account'
   import * as clubApi from '@/api/club'
   import {downloadTemplate} from "@/api/download";
+  import {getListByPage} from "@/api/toy";
 
   export default {
     name: 'index',
@@ -189,6 +204,14 @@
         btnList : [{title : '新增'}, {title : '批量导入', icon : 'el-icon-document-add'}],
         singleVisible : false,
         formLabelWidth : '120px',
+        loading: false,
+        page : {
+          current : 1,
+          sizes : [10, 20, 30, 50, 100],
+          size : 10,
+          total : 0
+        },
+
         form : {
           ring_no : '',
           player : '',
@@ -214,7 +237,6 @@
 
         batchVisible :false,
 
-
         tagMap:{},
         clubList:[],
         playerList:[],
@@ -231,11 +253,14 @@
         this.clubList = await clubApi.getList();
       },
       getTagName(tagId){
-        console.log(tagId)
         return this.tagMap[tagId].name;
       },
       async loadToys(){
-        this.toyList = await toyApi.getList();
+        this.loading = true;
+        let result = await toyApi.getListByPage({page: this.page.current, pageSize: this.page.size});
+        this.toyList = result.list;
+        this.page.total = result.total;
+        this.loading = false;
       },
       async loadPlayer(club){
         this.playerList = await userApi.getClubPlayers(club);
@@ -250,7 +275,7 @@
       async removeTag(id){
         try{
           await tagApi.remove(id)
-          this.loadTags();
+          await this.loadTags();
           this.$message({
             type: 'success',
             message: '删除成功'

@@ -206,22 +206,14 @@ router.post('/toy', gridFs.single('file'), httpResult.resp(async ctx => {
         await tagService.updateTagRefCount('toy');
         resp.success = resp.total;
     }catch(err){
-        resp.success = err.insertedDocs.length;
+         resp.success = err.insertedDocs.length;
         if(err.code === 11000){
-            let dupStr = err.message.match(/dup key: \{ ring_no: (.*),\}/);
+            let dupStr = err.message.match(/dup key: \{ ring_no: (.*),.*\}/);
             resp.message = `环号冲突，导致保存过程中断，请解决${dupStr[1]}环号的冲突后再试`
         }else{
             resp.message = err.message
         }
 
-    }
-    try{
-        await models.toy.insertMany(importList);
-        await tagService.updateTagRefCount('toy');
-        resp.success = resp.total;
-    }catch(err){
-        resp.success = err.insertedDocs.length;
-        resp.message = err.message
     }
     return resp;
 }));
