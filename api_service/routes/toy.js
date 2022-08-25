@@ -4,9 +4,8 @@
  */
 const router = require('koa-router')();
 const _ = require('lodash');
-const qs = require('qs');
-const utils = require('../lib/utils');
 import {updateTagRefCount} from '../services/tag'
+import {doSomeCheckAndReturnQuery} from '../services/toy'
 
 /**
  * 批量操作，更新鸽子标签
@@ -43,17 +42,7 @@ router.del('/batch', httpResult.resp(async ctx => {
   * populate with player leader club
   */
 router.get('/', httpResult.resp(async ctx => {
-    let user = ctx.session.user;
-    let role = await models.role.findOne({_id : user.role});
-    ctx.assert(role, 'system error: login user role = ' + role);
-    let query = ctx.query;
-    if(role.type === constant.ROLE_TYPE.PLAYER){
-        query.player = user._id;
-    }
-    if(role.type === constant.ROLE_TYPE.LEADER){
-        query.leader = user._id;
-    }
-    let q = _.assign(query, {removed : 0}, appCache.getClubQueryCondition(user.club));
+    let q = await doSomeCheckAndReturnQuery(ctx);
     return await models.toy.find(q).populate('player').populate('leader').populate('club');
 }));
 
@@ -64,23 +53,14 @@ router.get('/', httpResult.resp(async ctx => {
  * body : {total : totalSize, list : []}
  */
 router.get('/page', httpResult.resp(async ctx => {
-    let user = ctx.session.user;
-    let role = await models.role.findOne({_id : user.role});
-    ctx.assert(role, 'system error: login user role = ' + role);
-    let query = ctx.query;
-    if(role.type === constant.ROLE_TYPE.PLAYER){
-        query.player = user._id;
-    }
-    if(role.type === constant.ROLE_TYPE.LEADER){
-        query.leader = user._id;
-    }
-    let pageSize = +query.pageSize || 10;
-    let offset = ((+query.page || 1) - 1) * pageSize;
+    let q = doSomeCheckAndReturnQuery(ctx)
 
-    delete query.page;
-    delete query.pageSize;
+    let pageSize = +q.pageSize || 10;
+    let offset = ((+q.page || 1) - 1) * pageSize;
 
-    let q = _.assign(query, {removed : 0}, appCache.getClubQueryCondition(user.club));
+    delete q.page;
+    delete q.pageSize;
+
     let total = await models.toy.countDocuments(q);
     let list = await models.toy.find(q).skip(offset).limit(pageSize).populate('player').populate('leader').populate('club');
     return { total, list }

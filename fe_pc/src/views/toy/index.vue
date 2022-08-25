@@ -188,8 +188,7 @@
   import * as tagApi from '@/api/tag'
   import * as userApi from '@/api/account'
   import * as clubApi from '@/api/club'
-  import {downloadTemplate} from "@/api/download";
-  import {getListByPage} from "@/api/toy";
+  import {downloadTemplate} from "@/api/download"
 
   export default {
     name: 'index',
