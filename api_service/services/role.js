@@ -5,13 +5,12 @@ async function createDefaultRolesInClub(clubId){
         club : clubId,
         menus : [
             'account','account-edit',
-            'role','role-edit',
             'toy',
             'template','template-edit',
             'active','active-edit',
             'registration-index','registration-edit','registration-stat'
         ],
-        editable : false,
+        editable : true,
         create_time : new Date(),
     });
     await models.role.create({
@@ -19,7 +18,7 @@ async function createDefaultRolesInClub(clubId){
         type : constant.ROLE_TYPE.LEADER,
         club : clubId,
         menus : ['registration-index','registration-edit','registration-stat'],
-        editable : false,
+        editable : true,
         create_time : new Date(),
     });
     await models.role.create({
@@ -27,7 +26,7 @@ async function createDefaultRolesInClub(clubId){
         type : constant.ROLE_TYPE.PLAYER,
         club : clubId,
         menus : ['registration-index','registration-edit','registration-stat'],
-        editable : false,
+        editable : true,
         create_time : new Date(),
     });
 }
