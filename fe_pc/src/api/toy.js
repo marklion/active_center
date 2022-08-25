@@ -7,6 +7,18 @@ export function getList(query) {
     params : query
   })
 }
+
+/**
+ * @param query {page, pageSize, others}
+ * @return {list, total}
+ */
+export function getListByPage(query){
+  return request({
+    url: '/api/v1/toy/page',
+    method: 'get',
+    params : query
+  })
+}
 export function add(data) {
   return request({
     url: '/api/v1/toy/add',

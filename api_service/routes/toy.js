@@ -4,9 +4,8 @@
  */
 const router = require('koa-router')();
 const _ = require('lodash');
-const qs = require('qs');
-const utils = require('../lib/utils');
 import {updateTagRefCount} from '../services/tag'
+import {doSomeCheckAndReturnQuery} from '../services/toy'
 
 /**
  * 批量操作，更新鸽子标签
@@ -38,25 +37,35 @@ router.del('/batch', httpResult.resp(async ctx => {
     return result;
 }));
 
-
  /**
   * 获取鸽子列表
   * populate with player leader club
   */
 router.get('/', httpResult.resp(async ctx => {
-    let user = ctx.session.user;
-    let role = await models.role.findOne({_id : user.role});
-    ctx.assert(role, 'system error: login user role = ' + role);
-    let query = ctx.query;
-    if(role.type === constant.ROLE_TYPE.PLAYER){
-        query.player = user._id;
-    }
-    if(role.type === constant.ROLE_TYPE.LEADER){
-        query.leader = user._id;
-    }
-    let q = _.assign(query, {removed : 0}, appCache.getClubQueryCondition(user.club));
+    let q = await doSomeCheckAndReturnQuery(ctx);
     return await models.toy.find(q).populate('player').populate('leader').populate('club');
 }));
+
+/**
+ * 分页获取鸽子列表
+ * populate with player leader club
+ * query : {page : index, size : pageSize}
+ * body : {total : totalSize, list : []}
+ */
+router.get('/page', httpResult.resp(async ctx => {
+    let q = doSomeCheckAndReturnQuery(ctx)
+
+    let pageSize = +q.pageSize || 10;
+    let offset = ((+q.page || 1) - 1) * pageSize;
+
+    delete q.page;
+    delete q.pageSize;
+
+    let total = await models.toy.countDocuments(q);
+    let list = await models.toy.find(q).skip(offset).limit(pageSize).populate('player').populate('leader').populate('club');
+    return { total, list }
+}));
+
 /**
  * 新建鸽子条目
  */
@@ -67,7 +76,7 @@ router.post('/add', httpResult.resp(async ctx => {
 
     let result = await models.toy.create(obj);
     if(result.tags.length > 0){
-        for (const tagId of result) {
+        for (const tagId of result.tags) {
             await models.tag.updateOne({_id : tagId}, {$inc: {ref_count: 1}});
         }
     }
@@ -110,29 +119,5 @@ router.del('/:id', httpResult.resp(async ctx => {
     }
     return await toy.remove();
 }))
-
-
-// /**
-//  *
-//  */
-// router.get('/brief', httpResult.resp(async ctx => {
-//     let admin = ctx.session.admin;
-//     let query = qs.parse(ctx.querystring);//此处特殊处理，方式array 格式的qs koa解析错误
-//     let q = _.assign(query, {status : 1, customer_chain: new RegExp(`^${admin.customer_chain}`)});
-//
-//     let resp;
-//     if(query.input){
-//         resp = utils.getMobilesBriefStat(query.input);
-//     }else{
-//         if(query.tags && query.tags.length > 0){
-//             q.$or = query.tags.map(tagId => {return {tags : tagId}});
-//             delete q.tags;
-//         }
-//         let contacts = await models.contact.find(q);
-//         resp = utils.getMobilesBriefStat(contacts.map(c => c.mobile));
-//     }
-//
-//     return resp;
-// }));
 
 module.exports = router;

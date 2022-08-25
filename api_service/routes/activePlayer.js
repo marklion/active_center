@@ -6,6 +6,7 @@ const router = require('koa-router')();
 const _ = require('lodash');
 const moment = require("moment");
 const utils = require('../lib/utils')
+import {doSomeCheckAndReturnQuery} from '../services/toy'
 
 /**
  * 保存比赛记录
@@ -44,22 +45,13 @@ router.post('/', httpResult.resp(async ctx => {
 }));
 
 router.get('/', httpResult.resp(async ctx => {
-    let user = ctx.session.user;
-    let role = await models.role.findOne({_id : user.role});
-    ctx.assert(role, 'system error: login user role = ' + role);
-    let query = ctx.query;
-    if(role.type === constant.ROLE_TYPE.PLAYER){
-        query.player = user._id;
-    }
-    if(role.type === constant.ROLE_TYPE.LEADER){
-        query.leader = user._id;
-    }
-    let q = _.assign(query, {removed : 0}, appCache.getClubQueryCondition(user.club));
+    let q = doSomeCheckAndReturnQuery(ctx)
     return await models.activePlayer.find(q).populate('toy');
 }));
 
 const fs = require('fs')
 const compressing = require('compressing');
+const {doSomeCheckAndReturnQuery} = require("../services/toy");
 router.get('/export', httpResult.file(async ctx => {
     let user = ctx.session.user;
     let query = ctx.query;
