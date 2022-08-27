@@ -45,7 +45,7 @@ export function add(data) {
 }
 
 /**
- * 修改账号密码
+ * 用户修改账号密码
  * @param id 目标id
  * @param data {curPwd, newPwd, confirmPwd}
  */
@@ -55,6 +55,19 @@ export function resetPwd(id, data) {
     url: '/api/v1/user/'+ id,
     method: 'put',
     data
+  })
+}
+
+/**
+ * 管理员重置密码
+ * @param id 目标id
+ * @param data {curPwd, newPwd, confirmPwd}
+ */
+export function adminResetPwd(id) {
+  return request({
+    url: '/api/v1/user/' + id,
+    method: 'put',
+    data: { type: 'admin_reset_pwd' }
   })
 }
 
