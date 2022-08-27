@@ -175,7 +175,7 @@
 @media screen and (min-width: 800px){
   .form-card{
     margin-top: 20px;
-    width: 40%;
+    width: 50%;
   }
 }
 

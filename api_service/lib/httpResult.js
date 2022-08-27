@@ -42,13 +42,24 @@ let resp = _.curryRight(async function (ctx, next, fn){
         let message = '';
         if(err.code === 11000){
             if(err.keyValue.ring_no){
+                //创建鸽子时错误提示
                 message = '环号已存在，请调整后再试'
             }else if(err.keyValue.mobile){
+                //创建账号时错误提示
                 message = '手机号已被占用，请更换其他手机号'
             }else if(err.keyValue.account){
+                //创建账号时错误提示
                 message = '账号已存在，请调整后再试'
             }else if(err.keyValue.name){
+                //创建赛事时错误提示
                 message = '名称已存在，请调整后再试'
+            }else if(err.keyValue.toy){
+                //创建报名记录时错误提示
+                let toy = await models.toy.findOne({_id : err.keyValue.toy});
+                message = `该环号[${toy.ring_no}]已参加过该项目，请勿重复添加`
+            }else if(err.keyValue.item){
+                //创建报名记录时错误提示
+                message = '该环号已参加过该项目，请勿重复添加'
             }
         }
         log.error(err);

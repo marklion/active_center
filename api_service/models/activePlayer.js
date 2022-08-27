@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema,
     ObjectId = Schema.ObjectId;
 
-let itemSchema = new Schema({
+let recordSchema = new Schema({
     toy: {type : ObjectId, required: true, ref : 'toy'},
     player: {type : ObjectId, required: true, ref: 'user'},
     leader: {type : ObjectId, required: true, ref: 'user'},
@@ -24,7 +24,9 @@ let itemSchema = new Schema({
     update_time     : {type : Date, default: Date.now}
 });
 
-let model = mongoose.model('active_player', itemSchema);
+
+recordSchema.index( {toy: 1, item:1,  removed: 1}, { unique: true } );
+let model = mongoose.model('active_player', recordSchema);
 
 module.exports = model;
 
