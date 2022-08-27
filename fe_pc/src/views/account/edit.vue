@@ -52,6 +52,7 @@
           <el-form-item>
             <el-button type="primary" @click="handleSave">保存</el-button>
             <el-button @click="goBack">取消</el-button>
+            <el-button v-if="id" @click="resetPassword">重置密码</el-button>
           </el-form-item>
         </el-form>
       </el-card>
@@ -60,7 +61,7 @@
 </template>
 
 <script>
-  import { add, getById } from '@/api/account'
+import {add, adminResetPwd, getById} from '@/api/account'
   import * as roleApi from '@/api/role'
   import * as clubApi from '@/api/club'
 
@@ -156,6 +157,19 @@
           mobile : this.form.mobile,
         });
         this.goBack();
+      },
+      async resetPassword(){
+        try{
+          await this.$confirm('正在重置该账号密码, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          })
+          let newPwd = await adminResetPwd(this.id)
+          await this.$alert('请记录新密码: ' + newPwd, '重置成功', {
+            confirmButtonText: '确定'
+          });
+        }catch(err){}
       },
       async getVisibleRoles(clubId){
         this.roleList = await roleApi.getList({club : clubId});

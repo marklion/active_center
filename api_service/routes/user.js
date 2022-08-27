@@ -5,7 +5,7 @@
 const router = require('koa-router')();
 const _ = require('lodash');
 const cacheService = require('../services/cache');
-
+const utils = require('../lib/utils');
 const httpResult = require('../lib/httpResult');
 
 router.get('/:id', httpResult.resp(async ctx => {
@@ -74,7 +74,6 @@ router.put('/:id', httpResult.resp(async ctx => {
     let target = await models.user.findOne(_.assign({_id : id}, appCache.getClubQueryCondition(user.club)));
     ctx.assert(target, 'account is not exsit');
 
-    ctx.assert(['reset_pwd'].includes(body.type), 'update type is not supported yet : ' + body.type);
     switch(body.type){
         case 'reset_pwd' : {
             ctx.assert(target.comparePassword(body.curPwd), '当前密码错误');
@@ -82,7 +81,18 @@ router.put('/:id', httpResult.resp(async ctx => {
             ctx.assert(body.newPwd == body.confirmPwd, '新密码与确认密码结果不一致，请核对');
             target.pwd = body.newPwd;
             return await target.save();
-            break;
+        }
+        case 'admin_reset_pwd' : {
+            let role = await models.role.findOne({_id : user.role});
+            ctx.assert(role && (role.type === constant.ROLE_TYPE.SUPER_ADMIN || role.type === constant.ROLE_TYPE.MANAGER),
+                '仅管理员有权限重置密码');
+            let newPwd = utils.randomStr(6);
+            target.pwd = newPwd;
+            await target.save();
+            return newPwd
+        }
+        default : {
+            throw new Error('update type is not supported yet : ' + body.type)
         }
     }
 }));
