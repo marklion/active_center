@@ -53,7 +53,7 @@ router.get('/', httpResult.resp(async ctx => {
  * body : {total : totalSize, list : []}
  */
 router.get('/page', httpResult.resp(async ctx => {
-    let q = doSomeCheckAndReturnQuery(ctx)
+    let q = await doSomeCheckAndReturnQuery(ctx)
 
     let pageSize = +q.pageSize || 10;
     let offset = ((+q.page || 1) - 1) * pageSize;

@@ -52,7 +52,7 @@
             v-model="form.checkedToys"
             :min="1"
             :max="editingItem && editingItem.toy_limit">
-            <el-checkbox v-for="toy in filterToyList" :label="toy._id" :key="toy._id">{{toy.ring_no}}</el-checkbox>
+            <el-checkbox v-for="toy in filterToyList" :label="toy._id" :key="toy._id" :disabled="toy.disabled">{{toy.ring_no }}</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
       </el-form>
@@ -242,7 +242,23 @@ export default {
       return  _.uniqBy(_.map(this.toyList, 'player'), '_id');
     },
     filterToyList(){
-      return this.player ? _.filter(this.toyList, o => { return o.player._id === this.player }) : this.toyList;
+      if(this.form.checkedToys[0]){
+        let toyId = this.form.checkedToys[0]
+        let toy = _.find(this.toyList, {_id : toyId})
+        this.player = toy.player._id
+      }
+      let result = this.player ? _.filter(this.toyList, o => { return o.player._id === this.player }) : this.toyList;
+      outer:
+      for(let t of result){
+        t.disabled = false;
+        for(let record of this.activeItemPlayers){
+          if(record.item === this.editingItem._id && record.toy._id === t._id){
+            t.disabled = true;
+            continue outer;
+          }
+        }
+      }
+      return result
     },
     filterActiveItemPlayersMap(){
       let activeItemPlayersMap = {}
