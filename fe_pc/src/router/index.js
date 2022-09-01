@@ -44,12 +44,12 @@ export const constantRoutes = [
   {
     path: '/',
     component: Layout,
-    redirect: '/dashboard',
+    redirect: '/registration',
     children: [{
-      path: 'dashboard',
-      name: 'Dashboard',
-      component: () => import('@/views/dashboard/index'),
-      meta: { title: 'Dashboard', icon: 'dashboard' }
+      path: 'index',
+      name: 'registration',
+      component: () => import('@/views/registration/index'),
+      meta: { title: '赛事报名', icon: 'el-icon-s-claim', key: 'registration-index'}
     }]
   }
 ]
@@ -171,27 +171,6 @@ export const asyncRoutes = [
         component: () => import('@/views/active/edit'),
         meta: {title: '赛事编辑', icon: 'el-icon-trophy-1',  key: 'active-edit'},
         hidden: true
-      }
-    ]
-  },
-  {
-    path: '/example',
-    component: Layout,
-    redirect: '/example/table',
-    name: 'Example',
-    meta: { title: 'Example', icon: 'el-icon-s-help', key:'example' },
-    children: [
-      {
-        path: 'table',
-        name: 'Table',
-        component: () => import('@/views/table/index'),
-        meta: { title: 'Table', icon: 'table', key:'table' }
-      },
-      {
-        path: 'tree',
-        name: 'Tree',
-        component: () => import('@/views/tree/index'),
-        meta: { title: 'Tree', icon: 'tree', key:'tree' }
       }
     ]
   },{
