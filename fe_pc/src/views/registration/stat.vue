@@ -5,7 +5,12 @@
     </el-row>
     <el-row>
       <el-card class="box-card">
-        <el-table :data="activeItems" stripe style="width: 100%" @filter-change="onFilterChange">
+        <el-table style="width: 100%"
+                  stripe
+                  :data="activeItems"
+                  @filter-change="onFilterChange"
+                  show-summary
+                  :summary-method="getTotalSummaries">
           <el-table-column type="index" label="#" align="center">
           </el-table-column>
           <el-table-column
@@ -21,10 +26,13 @@
             :filter-method="filterHandler">
             <template v-slot="scope">
               <div v-for="(group) of activeItemPlayersMap[scope.row._id]" :key="group[0]._id" class="text item">
-                <el-tag @close="onRemoveRecord(scope.row._id, group)">
-                  {{getGroupDisplay(group)}}
-                </el-tag>
+                <el-tag>{{getGroupDisplay(group)}}</el-tag>
               </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="item_sum" label="小计(元)" align="center">
+            <template v-slot="scope">
+              <span>{{getItemSum(scope.row)}}</span>
             </template>
           </el-table-column>
         </el-table>
@@ -84,7 +92,25 @@ export default {
     getTitleDisplay(){
       return this.active ? this.active.name : ''
     },
-
+    getItemSum(item){
+      let records = this.activeItemPlayersMap[item._id];
+      return records && records.length > 0 ? item.bet_value * records.length : 0
+    },
+    getTotalSummaries(param){
+      let _this = this;
+      const { columns, data } = param;
+      const sums = [];
+      columns.forEach((column, index) => {
+        if (index === 0) {
+          sums[index] = '总计(元)';
+          return;
+        }
+        if(index === columns.length - 1){
+          sums[index] = data.reduce((sum, item) => {return sum + _this.getItemSum(item)}, 0);
+        }
+      });
+      return sums;
+    },
     async loadToys(){
       this.toyList = await getToyList();
     },
