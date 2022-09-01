@@ -29,7 +29,7 @@ router.beforeEach(async(to, from, next) => {
     } else {
       // determine whether the user has obtained his privilege & roles through getInfo
       const hasGetUserInfo = store.getters.name
-      console.log('hasGetUserInfo = ',hasGetUserInfo);
+      // console.log('hasGetUserInfo = ',hasGetUserInfo);
       if (hasGetUserInfo) {
         next()
       } else {
