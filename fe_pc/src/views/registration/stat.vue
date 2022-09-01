@@ -146,13 +146,11 @@ export default {
       if (columnIndex === 0) {
         if(!row.spanParam){
           if(this.spanCache[row.name]){
-            console.log(1)
             row.spanParam = {
               rowspan: 0,
               colspan: 0
             }
           }else{
-            console.log(2)
             this.spanCache[row.name] = {
               rowspan: this.activeItemMap[row.name].length,
               colspan: 1
