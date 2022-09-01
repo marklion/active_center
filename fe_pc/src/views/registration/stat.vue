@@ -4,15 +4,14 @@
       <el-page-header class="edit-header-bar" @back="goBack" :content=getTitleDisplay() />
     </el-row>
     <el-row>
-      <el-card class="box-card">
+      <el-card class="box-card" :body-style="{ padding: 0 }">
         <el-table style="width: 100%"
                   stripe
                   :data="activeItems"
                   @filter-change="onFilterChange"
                   show-summary
-                  :summary-method="getTotalSummaries">
-          <el-table-column type="index" label="#" align="center">
-          </el-table-column>
+                  :summary-method="getTotalSummaries"
+                  :span-method="itemSpanMethod">
           <el-table-column
             prop="name" label="项目" align="center"
             :filters="activeItemsName.map(name => {return {text: name, value: name}})"
@@ -62,6 +61,7 @@ export default {
       activeItemPlayersMap: {},
 
       toyList : [],
+      spanCache:{}
     }
   },
   beforeRouteEnter(to, from, next) {
@@ -134,13 +134,36 @@ export default {
       console.log('fileters = ', filters)
     },
     filterHandler(value, row, column) {
-      console.log(value, row, column)
       const property = column['property'];
       if(property === 'ring_no'){
         let group = this.activeItemPlayersMap[row._id];
         return group && _.find(_.flattenDeep(group), o => o.toy._id === value)
       }else{
         return row[property] === value;
+      }
+    },
+    itemSpanMethod({ row, column, rowIndex, columnIndex }){
+      if (columnIndex === 0) {
+        if(!row.spanParam){
+          if(this.spanCache[row.name]){
+            console.log(1)
+            row.spanParam = {
+              rowspan: 0,
+              colspan: 0
+            }
+          }else{
+            console.log(2)
+            this.spanCache[row.name] = {
+              rowspan: this.activeItemMap[row.name].length,
+              colspan: 1
+            }
+            row.spanParam = this.spanCache[row.name];
+          }
+        }
+        return row.spanParam
+      }
+      if(rowIndex === (row.length - 1) && columnIndex === (column.length - 1)){
+        this.spanCache = {}
       }
     }
   },
