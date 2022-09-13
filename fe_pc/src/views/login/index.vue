@@ -92,7 +92,7 @@ export default {
             verify_disabled: false,
             activeName: '0',
             loginForm: {
-                username: 'zcadmin',
+                username: '',
                 password: '',
                 phone: '',
                 verify_code: ''
