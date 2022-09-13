@@ -37,9 +37,6 @@
                 :name="item.name"
               >
                 <el-form label-width="80px">
-                  <el-form-item label="项目编码">
-                    <el-input v-model="item.code" size="small"></el-input>
-                  </el-form-item>
                   <el-form-item label="参赛羽数">
                     <el-input-number
                       size="small"
@@ -47,27 +44,25 @@
                       :min="1" :max="10">
                     </el-input-number>
                   </el-form-item>
+
                   <el-form-item label="下注金额">
-                    <el-tag
-                      :key="tag"
-                      v-for="tag in item.bet_values"
-                      closable
-                      :disable-transitions="false"
-                      @close="handleBetValueClose(tag)">
-                      {{tag}}
-                    </el-tag>
-                    <el-input
-                      class="input-new-tag"
-                      v-if="inputVisible"
-                      type="number"
-                      v-model="inputValue"
-                      ref="saveTagInput"
-                      size="small"
-                      @keyup.enter.native="handleInputConfirm"
-                      @blur="handleInputConfirm"
-                    >
-                    </el-input>
-                    <el-button v-else class="button-new-tag" type="primary" icon="el-icon-plus" size="small" @click="showInput">新增下注金额</el-button>
+                    <el-button class="button-new-tag" type="primary" icon="el-icon-plus" size="small" @click="addOneItem(index)">添加下注金额</el-button>
+                    <el-row :gutter="10" v-for="bet in item.bet_values">
+                      <el-col :span="10">
+                        <el-input size="small" v-model="bet.code">
+                          <template slot="prepend">编号</template>
+                        </el-input>
+                      </el-col>
+                      <el-col :span="10">
+                        <el-input size="small" v-model="bet.value" type="number">
+                          <template slot="prepend">金额</template>
+                        </el-input>
+                      </el-col>
+                      <el-col :span="4">
+                        <el-button type="danger" icon="el-icon-close" size="small" plain style="vertical-align: top;"
+                        @click="handleBetValueClose(bet)"></el-button>
+                      </el-col>
+                    </el-row>
                   </el-form-item>
                 </el-form>
               </el-tab-pane>
@@ -99,7 +94,7 @@
         form : {
           name : '',
           items : []
-        }
+        },
       }
     },
 
@@ -111,25 +106,7 @@
       }
     },
 
-    watch : {
-      // 'form.type' : {
-      //   handler(type, oldValue){
-      //     if(type === 4){
-      //       this.cardsTab = this.form.message_card_list.map((card,index) => {
-      //         let name = `${index}卡片${this.editCardIndex++}`;
-      //         if(index === 0){
-      //           this.editCardValue = name;
-      //         }
-      //           return {
-      //             title : '卡片' + (index + 1),
-      //             name : name
-      //           }
-      //       })
-      //     }
-      //   }
-      // },
-      // deep: true
-    },
+    watch : {},
 
     beforeRouteEnter(to, from, next) {
       let id = to.query.id
@@ -137,7 +114,9 @@
         if (id !== undefined) {
           //获取已存在card，覆盖form
           getById(id).then((resp) => {
-            vm.form = resp
+            vm.form = resp;
+            let items = resp.items;
+            vm.editableItem = (items && items.length > 0) ? items[0].name : ''
           })
         }
       })
@@ -185,8 +164,8 @@
         this.form.items = tabs.filter(tab => tab.name !== targetName);
       },
 
-      handleBetValueClose(tag){
-        this.currentEditItem.bet_values.splice(this.currentEditItem.bet_values.indexOf(tag), 1);
+      handleBetValueClose(bet){
+        this.currentEditItem.bet_values.splice(this.currentEditItem.bet_values.findIndex(e => e.value === bet.value), 1);
       },
 
       showInput() {
@@ -195,15 +174,11 @@
           this.$refs.saveTagInput[0].$refs.input.focus();
         });
       },
-
-      handleInputConfirm() {
-        console.log(123, this.inputValue)
-        let inputValue = this.inputValue;
-        if (inputValue) {
-          this.currentEditItem.bet_values.push(inputValue);
-        }
-        this.inputVisible = false;
-        this.inputValue = '';
+      addOneItem(index){
+        this.currentEditItem.bet_values.push({
+          value : '',
+          code : `T${index + 1}A${this.currentEditItem.bet_values.length + 1}`
+        })
       },
 
       async onSubmit() {
@@ -224,32 +199,9 @@
           console.log(err)
         }
       },
-
-      // getAnEmptyCard() {
-      //   return {
-      //     media: null,
-      //     title: '',
-      //     description: '',
-      //     suggestions: []
-      //   }
-      // },
     }
   }
 </script>
 
 <style scoped>
-.el-tag{
-  margin-right: 10px;
-}
-.button-new-tag {
-  height: 32px;
-  line-height: 30px;
-  padding-top: 0;
-  padding-bottom: 0;
-}
-.input-new-tag {
-  width: 90px;
-  margin-left: 10px;
-  vertical-align: bottom;
-}
 </style>

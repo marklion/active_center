@@ -45,6 +45,9 @@
               </el-option>
             </el-select>
           </el-form-item>
+          <el-form-item v-if="isLeader" label="鸽棚号" prop="house_code">
+            <el-input v-model="form.house_code"></el-input>
+          </el-form-item>
           <el-form-item label="备注" prop="comment">
             <el-input v-model="form.comment"></el-input>
           </el-form-item>
@@ -81,6 +84,7 @@ import {add, adminResetPwd, getById} from '@/api/account'
           club : '',
           role : '',
           mobile : '',
+          house_code : '',
           comment : ''
         },
 
@@ -103,6 +107,7 @@ import {add, adminResetPwd, getById} from '@/api/account'
           },
           club : [{required: true, message:'请选择归属俱乐部',trigger: 'blur'}],
           role : [{required: true, message:'请选择账号角色',trigger: 'blur'}],
+          house_code : [{required: true, message:'请填写团长棚号',trigger: 'blur'}],
         }
       }
     },
@@ -114,6 +119,10 @@ import {add, adminResetPwd, getById} from '@/api/account'
         }else{
           return '新建账号'
         }
+      },
+      isLeader(){
+        let leaderRole = this.roleList.find(i => i.type === 2);
+        return leaderRole && (this.form.role === leaderRole._id)
       }
     },
     beforeRouteEnter(to, from, next) {
@@ -155,6 +164,8 @@ import {add, adminResetPwd, getById} from '@/api/account'
           club : this.form.club,
           role : this.form.role,
           mobile : this.form.mobile,
+          comment : this.form.comment,
+          house_code : this.form.house_code,
         });
         this.goBack();
       },

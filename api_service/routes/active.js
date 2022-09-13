@@ -42,10 +42,10 @@ router.post('/', httpResult.resp(async ctx => {
         for(const bet_value of item.bet_values){
             activeItems.push({
                 active: result._id,
-                code: item.code,
+                code: bet_value.code,
                 name: item.name,
                 toy_limit: item.toy_limit,
-                bet_value: bet_value,
+                bet_value: bet_value.value,
                 create_time: new Date()
             });
         }
