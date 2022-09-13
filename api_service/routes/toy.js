@@ -72,7 +72,8 @@ router.get('/page', httpResult.resp(async ctx => {
 router.post('/add', httpResult.resp(async ctx => {
     let {club, _id} = ctx.session.user;
     let toy = ctx.request.body;
-    let obj = _.assign(toy, {creator : _id, create_time : new Date()});
+    let leader = await models.user.findOne({_id: toy.leader})
+    let obj = _.assign(toy, {creator : _id, create_time : new Date(), house_no: leader.house_code});
 
     let result = await models.toy.create(obj);
     if(result.tags.length > 0){
@@ -90,6 +91,8 @@ router.put('/:id', httpResult.resp(async ctx => {
     let {club} = ctx.session.user;
     let toy = ctx.request.body;
     let _id = ctx.params.id;
+    let leader = await models.user.findOne({_id: toy.leader})
+    toy.house_no = leader.house_code;
 
     let oldData = await models.toy.findOneAndUpdate({_id}, toy);
     if(oldData.tags.length > 0){

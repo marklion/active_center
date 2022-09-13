@@ -78,9 +78,9 @@ router.get('/export', httpResult.file(async ctx => {
         let writeString = '';
         for(let group of _.values(groups)){
             let tmp = _.map(group, 'toy.ring_no');
-            writeString += `${group[0].leader.comment},${tmp.join('|')}\r\n`
+            writeString += `${group[0].leader.house_code},${tmp.join('|')}\r\n`
         }
-        fs.writeFileSync(basePath + '/' + item.code + item.bet_value + '.txt', writeString, {flag : 'w'})
+        fs.writeFileSync(basePath + '/' + item.code + '.txt', writeString, {flag : 'w'})
     }
     let destFilePath = basePath + '/../' + active.name +  '.zip';
     await compressing.zip.compressDir(basePath, destFilePath);

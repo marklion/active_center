@@ -12,6 +12,7 @@ let adminUserSchema = new Schema({
     mobile          : {type : String, required: true},
     role            : {type : ObjectId, ref : 'role'},      //manager，leader，player，root
     privilege       : Object,
+    house_code      : {type : String}, //团长（leader）需添加该属性
     comment         : {type : String, default : ''},
     club        : {type : ObjectId, ref : 'club'},
     creator         : ObjectId,  //userModel 的objectId  //除超级管理员外，都有creator

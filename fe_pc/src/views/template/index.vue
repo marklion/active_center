@@ -15,7 +15,10 @@
                 <el-button class="btn-type-4" type="primary" size="mini" icon="el-icon-delete" @click="doDel(item._id)">删除</el-button>
                 <el-button class="btn-type-4" type="primary" size="mini" icon="el-icon-edit" @click="goEdit(item)">编辑</el-button>
               </div>
-              <span>项目：</span><el-tag v-for="menu in item.items">{{menu.name}} - {{menu.bet_values}}</el-tag>
+              <span>项目：</span>
+              <el-tag v-for="menu in item.items">
+                {{menu.name}} - {{menu.bet_values.map(i => i.value)}}
+              </el-tag>
             </el-card>
         </el-card>
       </el-col>

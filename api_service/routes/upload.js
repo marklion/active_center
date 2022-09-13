@@ -91,13 +91,16 @@ router.post('/user', gridFs.single('file'), httpResult.resp(async ctx => {
 
         let mobile = r['手机号'];
         ctx.assert(mobile && mobile.match(mobileValidRegx), 'mobile not valid: ' + mobile);
+        let house_code = r['鸽棚号'];
+        ctx.assert(roleName === '团长' ? house_code : true, 'you should provide house_code for leader user : ' + mobile)
+
         let account = r['账号'] || mobile;
         let pwd = r['密码'] || mobile.substring(5);
         let name = r['账号名称'] || mobile;
         let comment = r['备注']
 
         importList.push({
-            account, pwd, name, mobile, comment,
+            account, pwd, name, mobile, comment, house_code,
             role : createRole._id,
             club : belongClub,
             creator : _id,
@@ -192,7 +195,7 @@ router.post('/toy', gridFs.single('file'), httpResult.resp(async ctx => {
             ring_no,
             leader : leaderObj._id,
             player : playerObj._id,
-            house_no : r['鸽棚号'],
+            house_no : leaderObj.house_code,
             club : belongClub,
             tags,
             comment : r['备注'], //警惕用户输入，造成数据库攻击

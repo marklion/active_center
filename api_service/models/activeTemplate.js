@@ -7,10 +7,12 @@ let activeSchema = new Schema({
     name            : {type : String, required: true},       //活动名称
     club            : {type : ObjectId, required: true, ref : 'club'},
     items           : [{
-        code : {type : String, required : true},
         name : {type : String},
         toy_limit : {type : Number, required: true}, //参赛羽数
-        bet_values : [Number]
+        bet_values : [{
+            code : {type : String, required : true},
+            value : {type : Number, required : true},
+        }]
     }],
     comment         : {type : String, default: ""},     //备注
     creator         : {type : ObjectId, ref: 'user'},  //userModel 的objectId
