@@ -23,17 +23,25 @@ router.post('/', httpResult.resp(async ctx => {
     ctx.assert(activeItem, 'active item error: not exist');
 
     ctx.assert(data.toys, 'missing field : toys');
-    ctx.assert(data.toys.length === activeItem.toy_limit, `toy limit error: you should submit ${activeItem.toy_limit} but ${data.toys.length}`);
+    ctx.assert(data.toys.length % activeItem.toy_limit === 0, `toy limit error: you should submit ${activeItem.toy_limit} but ${data.toys.length}`);
     let toys = await models.toy.find({_id: {$in: data.toys}}).lean();
     let active = await models.active.findOne({_id: activeItem.active});
     ctx.assert(active, 'system error: active not exist');
     ctx.assert(active.canJoin(toys), 'active is not available');
-    ctx.assert(_.uniqBy(_.map(toys, 'player'), i => i._id.toString()).length === 1, 'request valid fail, all ring_no should belongs to one player')
+    // ctx.assert(_.uniqBy(_.map(toys, 'player'), i => i._id.toString()).length === 1, 'request valid fail, all ring_no should belongs to one player')
 
     let group_id = utils.timeStr_random6();
     let resultList = [];
     try {
-        for (let toy of toys) {
+        for(let i = 0; i < data.toys.length; i++){
+            if(i % activeItem.toy_limit === 0){
+                group_id = utils.timeStr_random6();
+            }
+            let toy = toys.find(t => {
+                console.log(t._id.str, t._id.toString(), data.toys[i])
+                return t._id.toString() === data.toys[i]
+            });
+
             resultList.push(await models.activePlayer.create({
                 toy: toy._id,
                 player: toy.player,

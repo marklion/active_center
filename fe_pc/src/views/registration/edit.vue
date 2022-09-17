@@ -32,7 +32,9 @@
               <el-button style="float: right; padding: 3px 0" type="text" @click="showToySelect(bet)">添加</el-button>
             </div>
             <div v-for="(group) of filterActiveItemPlayersMap[bet._id]" :key="group[0]._id" class="text item">
-              <el-tag closable @close="onRemoveRecord(bet._id, group)">
+              <el-tag style="margin-right: 8px"
+                      closable
+                      @close="onRemoveRecord(bet._id, group)">
                 {{getGroupDisplay(group)}}
               </el-tag>
             </div>
@@ -42,18 +44,49 @@
     </el-row>
 
 
-    <el-dialog title="请选择环号" :visible.sync="toySelectVisible" width="90%" @close="onCancelToySelect">
+<!--    <el-dialog title="请选择环号" :visible.sync="toySelectVisible" width="90%" @close="onCancelToySelect">-->
+<!--      <el-form ref="form" :model="form" :rules="rules" label-width="80px">-->
+<!--        <el-form-item label="选择数量">-->
+<!--          <el-input v-model="editingItem.toy_limit" disabled></el-input>-->
+<!--        </el-form-item>-->
+<!--        <el-form-item label="候选环号" prop="checkedToys">-->
+<!--          <el-checkbox-group-->
+<!--            v-model="form.checkedToys"-->
+<!--            :min="1"-->
+<!--            :max="editingItem && editingItem.toy_limit">-->
+<!--            <el-checkbox v-for="toy in filterToyList" :label="toy._id" :key="toy._id" :disabled="toy.disabled">{{toy.ring_no }}</el-checkbox>-->
+<!--          </el-checkbox-group>-->
+<!--        </el-form-item>-->
+<!--      </el-form>-->
+<!--      <div slot="footer" class="dialog-footer">-->
+<!--        <el-button @click="onCancelToySelect">取 消</el-button>-->
+<!--        <el-button @click="onResetForm">重 置</el-button>-->
+<!--        <el-button type="primary" @click="onSaveBetRecord">确 定</el-button>-->
+<!--      </div>-->
+<!--    </el-dialog>-->
+
+    <el-dialog title="请选择下注环号" :visible.sync="toySelectVisible" width="90%" @close="onCancelToySelect">
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="选择数量">
           <el-input v-model="editingItem.toy_limit" disabled></el-input>
         </el-form-item>
         <el-form-item label="候选环号" prop="checkedToys">
           <el-checkbox-group
-            v-model="form.checkedToys"
-            :min="1"
-            :max="editingItem && editingItem.toy_limit">
-            <el-checkbox v-for="toy in filterToyList" :label="toy._id" :key="toy._id" :disabled="toy.disabled">{{toy.ring_no }}</el-checkbox>
+            @change="CheckedToysChangeHandle"
+            v-model="form.checkedToys">
+            <el-checkbox v-for="toy in availableToyList()" :label="toy._id" :key="toy._id" :disabled="toy.disabled || !toy.available">
+              {{toy.ring_no }}
+            </el-checkbox>
           </el-checkbox-group>
+        </el-form-item>
+        <el-form-item label="结果预览">
+          <el-tag style="margin-right: 8px"
+                  v-for="(toyId, index) in form.checkedToys"
+                  v-if="index % editingItem.toy_limit === 0"
+                  closable
+                  @close="onRemoveTmpCheckedGroup(index, editingItem.toy_limit, form.checkedToys)">
+            {{ getPreviewDisplay(index, editingItem.toy_limit, form.checkedToys ) }}
+          </el-tag>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
@@ -76,6 +109,16 @@ import {mapGetters} from "vuex";
 export default {
 
   data() {
+    const toysValidator = function(){
+      let _this = this;
+      return function(rule, value, cb){
+        if(value.length > 0 && (value.length % _this.editingItem.toy_limit) === 0){
+          cb();
+        }else{
+          return cb(new Error('无法完成分组，请检查选择的数量，该项目每 ' + _this.editingItem.toy_limit + ' 个为一组'))
+        }
+      }
+    }.bind(this)()
     return {
       player : '',
 
@@ -89,7 +132,7 @@ export default {
 
       toyList : [],
       toySelectVisible: false,
-      editingItem: {toy_limit : 0},
+      editingItem: {toy_limit: 0},
 
       form : {
         checkedToys : []
@@ -97,19 +140,9 @@ export default {
       rules : {
         checkedToys : [
           {type: 'array', required: true, message: '请选择对应数量的环号', trigger: 'change'},
-          {type: 'array', required: true, validator: this.toysValidator, trigger: 'change'},
+          {type: 'array', required: true, validator: toysValidator, trigger: 'change'},
         ]
       },
-      toysValidator : function(){
-        let _this = this;
-        return function(rule, value, cb){
-            if(value.length === _this.editingItem.toy_limit){
-              cb();
-            }else{
-              return cb(new Error('请正确选择环号数量' + _this.editingItem.toy_limit))
-            }
-        }
-      }.bind(this)()
     }
   },
   beforeRouteEnter(to, from, next) {
@@ -133,6 +166,24 @@ export default {
     await this.loadToys();
   },
   methods: {
+    getPreviewDisplay(index, limit, checkedList){
+      let result = '';
+      for(let i = 0; i < limit; i++){
+        let toyId = checkedList[index + i];
+        if(toyId){
+          result += `,${this.toyMap[toyId].ring_no}`
+        }else{
+          result += ', ? '
+        }
+      }
+      return result.substring(1);
+    },
+    onRemoveTmpCheckedGroup(index, limit, checkedList){
+      checkedList.splice(index, limit);
+    },
+    CheckedToysChangeHandle(value){
+      console.log(value)
+    },
     goBack(){
       this.$router.push({ path: '/registration/index' })
     },
@@ -229,6 +280,21 @@ export default {
           message: '删除成功!'
         })
       }catch(err){}
+    },
+    availableToyList(){
+      let notInGroup = this.form.checkedToys.length % this.editingItem.toy_limit
+      if(notInGroup > 0){
+        let toyId = this.form.checkedToys.at(-1);
+        let playerId = this.toyMap[toyId].player._id;
+        for(let toy of this.filterToyList){
+          toy.available = (toy.player._id === playerId)
+        }
+      }else{
+        for(let toy of this.filterToyList){
+          toy.available = true
+        }
+      }
+      return this.filterToyList;
     }
   },
   computed: {
@@ -238,15 +304,18 @@ export default {
       'id',
       'roleType'
     ]),
+    toyMap(){
+      return _.keyBy(this.toyList, '_id')
+    },
     toyPlayers(){
       return  _.uniqBy(_.map(this.toyList, 'player'), '_id');
     },
     filterToyList(){
-      if(this.form.checkedToys[0]){
-        let toyId = this.form.checkedToys[0]
-        let toy = _.find(this.toyList, {_id : toyId})
-        this.player = toy.player._id
-      }
+      // if(this.form.checkedToys[0]){
+      //   let toyId = this.form.checkedToys[0]
+      //   let toy = _.find(this.toyList, {_id : toyId})
+      //   this.player = toy.player._id
+      // }
       let result = this.player ? _.filter(this.toyList, o => { return o.player._id === this.player }) : this.toyList;
       outer:
       for(let t of result){
