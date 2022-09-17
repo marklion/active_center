@@ -43,28 +43,6 @@
       </el-tabs>
     </el-row>
 
-
-<!--    <el-dialog title="请选择环号" :visible.sync="toySelectVisible" width="90%" @close="onCancelToySelect">-->
-<!--      <el-form ref="form" :model="form" :rules="rules" label-width="80px">-->
-<!--        <el-form-item label="选择数量">-->
-<!--          <el-input v-model="editingItem.toy_limit" disabled></el-input>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="候选环号" prop="checkedToys">-->
-<!--          <el-checkbox-group-->
-<!--            v-model="form.checkedToys"-->
-<!--            :min="1"-->
-<!--            :max="editingItem && editingItem.toy_limit">-->
-<!--            <el-checkbox v-for="toy in filterToyList" :label="toy._id" :key="toy._id" :disabled="toy.disabled">{{toy.ring_no }}</el-checkbox>-->
-<!--          </el-checkbox-group>-->
-<!--        </el-form-item>-->
-<!--      </el-form>-->
-<!--      <div slot="footer" class="dialog-footer">-->
-<!--        <el-button @click="onCancelToySelect">取 消</el-button>-->
-<!--        <el-button @click="onResetForm">重 置</el-button>-->
-<!--        <el-button type="primary" @click="onSaveBetRecord">确 定</el-button>-->
-<!--      </div>-->
-<!--    </el-dialog>-->
-
     <el-dialog title="请选择下注环号" :visible.sync="toySelectVisible" width="90%" @close="onCancelToySelect">
       <el-form ref="form" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="选择数量">
@@ -311,11 +289,6 @@ export default {
       return  _.uniqBy(_.map(this.toyList, 'player'), '_id');
     },
     filterToyList(){
-      // if(this.form.checkedToys[0]){
-      //   let toyId = this.form.checkedToys[0]
-      //   let toy = _.find(this.toyList, {_id : toyId})
-      //   this.player = toy.player._id
-      // }
       let result = this.player ? _.filter(this.toyList, o => { return o.player._id === this.player }) : this.toyList;
       outer:
       for(let t of result){
