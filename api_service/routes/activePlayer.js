@@ -74,10 +74,10 @@ router.get('/export', httpResult.file(async ctx => {
     let active = await models.active.findOne({_id : query.active});
     let items = await models.activeItem.find({active: query.active});
     ctx.assert(items && items.length > 0, 'system error: no items exist in this active');
-    let data = await models.activePlayer.find({active: query.active}).populate('toy').populate('leader');
+    let data = await models.activePlayer.find({active: query.active, removed: 0}).populate('toy').populate('leader');
     ctx.assert(data && data.length > 0, 'system error: no registration exist in this active');
 
-    let basePath = `${__dirname}/../public/download/${user.account}/${query.active}`
+    let basePath = `${__dirname}/../public/download/${user.account}/${active.name}_${query.active}`
     fs.mkdirSync(basePath, { recursive: true })
     let activePlayerMap = _.groupBy(data, 'item');
     for(let item of items){
@@ -90,7 +90,7 @@ router.get('/export', httpResult.file(async ctx => {
         }
         fs.writeFileSync(basePath + '/' + item.code + '.txt', writeString, {flag : 'w'})
     }
-    let destFilePath = basePath + '/../' + active.name +  '.zip';
+    let destFilePath = basePath + '/../' + encodeURI(active.name) +  '.zip';
     await compressing.zip.compressDir(basePath, destFilePath);
     return destFilePath
 }))
