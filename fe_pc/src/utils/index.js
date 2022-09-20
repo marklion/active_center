@@ -118,10 +118,12 @@ export function param2Obj(url) {
 
 export function convertRes2Blob(response) {
   // 提取文件名
-  const fileName = response.headers['content-disposition'].match(
-    /''(.*)$/
-  )[1]
-  console.log(fileName);
+  const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+  let matches = response.headers['content-disposition'].match(filenameRegex);
+  let fileName = 'active_export.zip'
+  if (matches != null && matches[1]) {
+    fileName = matches[1].replace(/['"]/g, '');
+  }
   // 将二进制流转为blob
   const blob = new Blob([response.data], { type: response.headers['content-type'] })
   if (typeof window.navigator.msSaveBlob !== 'undefined') {
