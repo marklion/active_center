@@ -68,6 +68,13 @@ router.get('/', httpResult.resp(async ctx => {
     return await models.activePlayer.find(q).populate('toy');
 }));
 
+router.delete('/', httpResult.resp(async ctx => {
+    let q = await doSomeCheckAndReturnQuery(ctx)
+    let ids = ctx.request.body;
+    q = _.assign({_id : {$in : ids}}, q);
+    return await models.activePlayer.deleteMany(q);
+}));
+
 router.get('/export', httpResult.file(async ctx => {
     let user = ctx.session.user;
     let query = ctx.query;
@@ -79,17 +86,39 @@ router.get('/export', httpResult.file(async ctx => {
 
     let basePath = `${__dirname}/../public/download/${user.account}/${active.name}_${query.active}`
     fs.mkdirSync(basePath, { recursive: true })
+
+    let xlsData = []; //[{sheet：String, title: [{name : String, key : String}], data: [{keys : values}]}]
+
     let activePlayerMap = _.groupBy(data, 'item');
     for(let item of items){
         let itemRecords = activePlayerMap[item._id];
         let groups = _.groupBy(itemRecords, 'group_id');
+
+        let i = 0;
         let writeString = '';
+        let data = [];
         for(let group of _.values(groups)){
+            i++;
             let tmp = _.map(group, 'toy.ring_no');
             writeString += `${group[0].leader.house_code},${tmp.join('|')}\r\n`
+
+            for(let one of group){
+                data.push({
+                    house_code: one.leader.house_code,
+                    group_id: i,
+                    ring_no: one.toy.ring_no
+                })
+            }
         }
         fs.writeFileSync(basePath + '/' + item.code + '.txt', writeString, {flag : 'w'})
+        xlsData.push({
+            sheet : item.code,
+            title: [{name : '棚号', key: 'house_code'},{name : '分组号', key: 'group_id'},{name : '环号', key: 'ring_no'},],
+            data : data
+        })
     }
+    let xlsBuffer = utils.buildExcelResultBuf(xlsData);
+    fs.writeFileSync(basePath + '/' + active.name + '.xlsx', xlsBuffer, {flag: 'w'})
     let destFilePath = basePath + '/../' + encodeURI(active.name) +  '.zip';
     await compressing.zip.compressDir(basePath, destFilePath);
     return destFilePath
