@@ -8,17 +8,25 @@ export function save(data){
   });
 }
 
-export function getList(query){
+export function getList(params){
   return request({
     url: '/api/v1/activePlayer',
     method: 'get',
-    query
+    params
   })
 }
 export function remove(id){
   return request({
     url: '/api/rest/activePlayer/' + id,
     method: 'delete',
+  })
+}
+
+export function removeBatch(ids){
+  return request({
+    url: '/api/v1/activePlayer',
+    method: 'delete',
+    data : ids
   })
 }
 

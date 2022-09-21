@@ -15,7 +15,6 @@
               :value="item._id">
             </el-option>
           </el-select>
-
         </el-form-item>
       </el-form>
 
@@ -26,19 +25,14 @@
             type="success"
             :closable="false">
           </el-alert>
-          <el-card class="box-card" v-for="(bet) of activeItemMap[item]">
-            <div slot="header" class="clearfix">
-              <span>{{ bet.bet_value }}</span>
-              <el-button style="float: right; padding: 3px 0" type="text" @click="showToySelect(bet)">添加</el-button>
-            </div>
-            <div v-for="(group) of filterActiveItemPlayersMap[bet._id]" :key="group[0]._id" class="text item">
-              <el-tag style="margin-right: 8px"
-                      closable
-                      @close="onRemoveRecord(bet._id, group)">
-                {{getGroupDisplay(group)}}
-              </el-tag>
-            </div>
-          </el-card>
+
+          <div v-for="(bet) of activeItemMap[item]">
+            <itemRegistCard :item="bet" :records="filterActiveItemPlayersMap[bet._id]"
+                            @add="showToySelect"
+                            @delete="onRemoveRecord"
+                            @batch-delete="onBatchRemoveRecords">
+            </itemRegistCard>
+          </div>
         </el-tab-pane>
       </el-tabs>
     </el-row>
@@ -50,7 +44,6 @@
         </el-form-item>
         <el-form-item label="候选环号" prop="checkedToys">
           <el-checkbox-group
-            @change="CheckedToysChangeHandle"
             v-model="form.checkedToys">
             <el-checkbox v-for="toy in availableToyList()" :label="toy._id" :key="toy._id" :disabled="toy.disabled || !toy.available">
               {{toy.ring_no }}
@@ -80,12 +73,16 @@
 import { getById } from '@/api/active'
 import {getActiveItemById} from '@/api/activeItem'
 import {getList as getToyList} from '@/api/toy'
-import {save as saveActivePlayer, getList as getActivePlayerList, remove as removePlayer} from '@/api/activePlayer'
+import {save as saveActivePlayer, getList as getActivePlayerList, remove as removePlayer, removeBatch} from '@/api/activePlayer'
 import * as _ from 'lodash'
 import {mapGetters} from "vuex";
+import itemRegistCard from "./itemRegistCard";
 
 export default {
 
+  components:{
+    itemRegistCard
+  },
   data() {
     const toysValidator = function(){
       let _this = this;
@@ -158,9 +155,6 @@ export default {
     },
     onRemoveTmpCheckedGroup(index, limit, checkedList){
       checkedList.splice(index, limit);
-    },
-    CheckedToysChangeHandle(value){
-      console.log(value)
     },
     goBack(){
       this.$router.push({ path: '/registration/index' })
@@ -239,25 +233,24 @@ export default {
     async reloadActivePlayers(){
       this.activeItemPlayers = await getActivePlayerList({active: this.activeId});
     },
-    getGroupDisplay(group){
-      return _.map(group, 'toy.ring_no').join(' - ')
+    async onRemoveRecord(item, toyGroup) {
+      for (let record of toyGroup) {
+        await removePlayer(record._id);
+      }
+      await this.reloadActivePlayers();
+      this.$message({
+        type: 'success',
+        message: '删除成功!'
+      })
     },
-    async onRemoveRecord(item, toyGroup){
-      try{
-        await this.$confirm('此操作将删除该报名记录, 是否继续?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        })
-        for(let record of toyGroup){
-          await removePlayer(record._id);
-        }
-        await this.reloadActivePlayers();
-        this.$message({
-          type: 'success',
-          message: '删除成功!'
-        })
-      }catch(err){}
+    async onBatchRemoveRecords(bet_item, recordGroups){
+      let ids = _.map(_.flattenDeep(recordGroups), '_id');
+      let r = await removeBatch(ids);
+      await this.reloadActivePlayers();
+      this.$message({
+        type: 'success',
+        message: r.deletedCount + '条记录，删除成功!'
+      })
     },
     availableToyList(){
       let notInGroup = this.form.checkedToys.length % this.editingItem.toy_limit
